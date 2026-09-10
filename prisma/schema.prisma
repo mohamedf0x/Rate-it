@@ -1,0 +1,299 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------- Enums ----------
+
+enum UserRole {
+  USER
+  BUSINESS_OWNER
+  ADMIN
+}
+
+enum PlaceCategory {
+  RESTAURANT
+  SHOP
+  PHARMACY
+  GAMING_ZONE
+  PADEL_COURT
+  FOOTBALL_COURT
+  OTHER
+}
+
+enum RankScope {
+  REVIEWER
+  PLACE
+}
+
+enum BadgeScope {
+  REVIEWER
+  PLACE
+}
+
+enum XpEventType {
+  REVIEW_WRITTEN
+  FIRST_TO_REVIEW
+  REVIEW_GOT_UPVOTED
+  REVIEW_REMOVED
+  PROFILE_COMPLETED
+  SKILL_LISTED
+  STREAK_BONUS
+  ADMIN_ADJUSTMENT
+}
+
+enum ReviewStatus {
+  PUBLISHED
+  FLAGGED
+  REMOVED
+}
+
+enum VoteType {
+  HELPFUL
+  UNHELPFUL
+}
+
+// ---------- Identity ----------
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  username     String   @unique
+  passwordHash String
+  displayName  String
+  avatarUrl    String?
+  bio          String?
+  role         UserRole @default(USER)
+  createdAt    DateTime @default(now())
+
+  stats         ReviewerStats?
+  reviews       Review[]
+  xpEvents      XpEvent[]
+  badges        UserBadge[]
+  skillListings SkillListing[]
+  reviewVotes   ReviewVote[]
+  ownedPlaces   Place[]        @relation("PlaceOwner")
+
+  @@map("users")
+}
+
+// ---------- Reviewer gamification ----------
+
+model ReviewerStats {
+  userId               String   @id
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xp                   Int      @default(0)
+  level                Int      @default(1)
+  rankTierId           String?
+  rankTier             RankTier? @relation(fields: [rankTierId], references: [id])
+  reviewCount          Int      @default(0)
+  firstReviewCount     Int      @default(0)
+  helpfulVotesReceived Int      @default(0)
+  currentStreak        Int      @default(0)
+  longestStreak        Int      @default(0)
+  updatedAt            DateTime @updatedAt
+
+  @@map("reviewer_stats")
+}
+
+model XpEvent {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      XpEventType
+  amount    Int
+  refType   String?
+  refId     String?
+  createdAt DateTime    @default(now())
+
+  @@index([userId])
+  @@map("xp_events")
+}
+
+model RankTier {
+  id        String    @id @default(cuid())
+  scope     RankScope
+  name      String
+  order     Int
+  minScore  Int
+  icon      String?
+  color     String?
+
+  reviewerStats ReviewerStats[]
+  places        Place[]
+
+  @@unique([scope, order])
+  @@map("rank_tiers")
+}
+
+// ---------- Badges ----------
+
+model Badge {
+  id          String     @id @default(cuid())
+  code        String     @unique
+  name        String
+  description String
+  icon        String?
+  scope       BadgeScope
+  criteria    String
+
+  userBadges  UserBadge[]
+  placeBadges PlaceBadge[]
+
+  @@map("badges")
+}
+
+model UserBadge {
+  id         String   @id @default(cuid())
+  userId     String
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId    String
+  badge      Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  awardedAt  DateTime @default(now())
+
+  @@unique([userId, badgeId])
+  @@map("user_badges")
+}
+
+model PlaceBadge {
+  id        String   @id @default(cuid())
+  placeId   String
+  place     Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  awardedAt DateTime @default(now())
+
+  @@unique([placeId, badgeId])
+  @@map("place_badges")
+}
+
+// ---------- Places & items ----------
+
+model Place {
+  id           String        @id @default(cuid())
+  slug         String        @unique
+  name         String
+  category     PlaceCategory
+  description  String?
+  address      String?
+  city         String?
+  lat          Float?
+  lng          Float?
+  phone        String?
+  website      String?
+  ownerId      String?
+  owner        User?         @relation("PlaceOwner", fields: [ownerId], references: [id])
+  avgRating    Float         @default(0)
+  reviewCount  Int           @default(0)
+  qualityScore Int           @default(0)
+  rankTierId   String?
+  rankTier     RankTier?     @relation(fields: [rankTierId], references: [id])
+  createdAt    DateTime      @default(now())
+
+  products Product[]
+  reviews  Review[]
+  badges   PlaceBadge[]
+  photos   Photo[]
+
+  @@index([category])
+  @@map("places")
+}
+
+model Product {
+  id          String   @id @default(cuid())
+  placeId     String
+  place       Place    @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  name        String
+  description String?
+  category    String?
+  avgRating   Float    @default(0)
+  reviewCount Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  reviews Review[]
+  photos  Photo[]
+
+  @@index([placeId])
+  @@map("products")
+}
+
+model SkillListing {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title       String
+  description String?
+  category    String?
+  verified    Boolean  @default(false)
+  avgRating   Float    @default(0)
+  reviewCount Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  reviews Review[]
+
+  @@index([userId])
+  @@map("skill_listings")
+}
+
+// ---------- Reviews ----------
+
+model Review {
+  id             String       @id @default(cuid())
+  authorId       String
+  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  placeId        String?
+  place          Place?       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  productId      String?
+  product        Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  skillListingId String?
+  skillListing   SkillListing? @relation(fields: [skillListingId], references: [id], onDelete: Cascade)
+  rating         Int
+  title          String?
+  body           String
+  isFirstReview  Boolean      @default(false)
+  helpfulCount   Int          @default(0)
+  unhelpfulCount Int          @default(0)
+  status         ReviewStatus @default(PUBLISHED)
+  createdAt      DateTime     @default(now())
+  editedAt       DateTime?
+
+  votes  ReviewVote[]
+  photos Photo[]
+
+  @@index([placeId])
+  @@index([productId])
+  @@index([skillListingId])
+  @@index([authorId])
+  @@map("reviews")
+}
+
+model ReviewVote {
+  id        String   @id @default(cuid())
+  reviewId  String
+  review    Review   @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      VoteType
+  createdAt DateTime @default(now())
+
+  @@unique([reviewId, userId])
+  @@map("review_votes")
+}
+
+model Photo {
+  id        String   @id @default(cuid())
+  url       String
+  placeId   String?
+  place     Place?   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  productId String?
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  reviewId  String?
+  review    Review?  @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@map("photos")
+}
