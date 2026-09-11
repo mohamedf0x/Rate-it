@@ -8,3 +8,9 @@ const dictionaries = { ar, en };
 export function getDictionary(locale: Locale) {
   return dictionaries[locale];
 }
+
+/** Tiers are DB rows an admin can add to, so fall back to the stored name. */
+export function tierLabel(locale: Locale, name: string): string {
+  const tiers: Record<string, string> = dictionaries[locale].tiers;
+  return tiers[name] ?? name;
+}
