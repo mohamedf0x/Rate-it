@@ -25,6 +25,17 @@ Review ──1:N── ReviewVote (helpful/unhelpful)
 Review ──1:N── Photo
 Review ──N:1── User (author)
 Review ──N:1── Place | ProductOrService | SkillListing  (exactly one target)
+Review ──1:1── OwnerResponse (the place owner's public reply)
+
+User ──1:N── PointEvent          (spendable currency ledger)
+User ──1:N── Redemption ──N:1── Reward
+User ──1:N── UserPerk            (timed profile perks)
+User ──1:1── Subscription
+User ──1:N── Follow ──N:1── User | Place  (exactly one target)
+User ──1:N── Notification
+
+Reward ──1:N── Redemption ──1:1── ReviewPin | UserPerk
+Review ──1:N── ReviewFlag        (suspicious-pattern records)
 ```
 
 ## Core entities
@@ -106,16 +117,89 @@ Polymorphic target: exactly one of `placeId`, `productId`, `skillListingId` is s
 ### Photo
 - `id, url, reviewId? | placeId? | productId?` (polymorphic, same rule as Review)
 
+### OwnerResponse
+A place owner's public reply to a review — the Google/Yelp model. Owners answer reviews,
+they never remove them, so the platform keeps its integrity while the business gets a voice.
+- `id, reviewId (unique), authorId, body, createdAt, editedAt?`
+- One reply per review, editable. The author must own the reviewed place (or the place the
+  reviewed product belongs to) — checked at the application layer.
+
+## Points, rewards & subscriptions
+
+### PointEvent (append-only ledger)
+The spendable currency, deliberately separate from XP. **XP measures activity** and is
+granted on every review; **points have value**, so they only land when a review clears the
+quality gates in `POINT_RULES`. Withheld awards are still written here with `amount = 0` and
+a `reason`, so a reviewer can always be told why a review earned nothing.
+- `id, userId, type, amount, reason?, refType, refId, createdAt`
+- `type`: `REVIEW_WRITTEN | FIRST_TO_REVIEW | FIRST_TO_ADD_PLACE | REVIEW_GOT_UPVOTED | REDEMPTION | ADMIN_ADJUSTMENT`
+- `ReviewerStats.pointsBalance` = `sum(amount)`; `pointsLifetime` = `sum(amount > 0)`, so
+  spending points never costs a badge that was already earned.
+
+### Reward / Redemption
+`Reward` is the catalog of what points buy; `Redemption` is one purchase.
+- `Reward`: `id, code, kind, title, description, costPoints, badgeId?, placeId?, durationDays?, stock?, startsAt?, endsAt?, active`
+- `kind`: `BADGE | PROFILE_BOOST | PINNED_REVIEW | COUPON`
+- `COUPON` + `placeId` exist so a real discounts programme can be switched on later without a
+  migration. **No partnership is assumed** — rows stay `active = false` until an admin enables them.
+- `Redemption`: `id, userId, rewardId, costPoints, status, code?, expiresAt, createdAt`
+- `costPoints` is copied onto the redemption rather than read back from the reward, because
+  catalog prices change and a receipt must not. Rewards are deactivated, never deleted.
+
+### ReviewPin / UserPerk
+What a redemption actually grants.
+- `ReviewPin`: `reviewId, placeId, redemptionId (unique), endsAt` — a bought slot at the top
+  of a place's review list. Expiry is read from `endsAt` at query time, so a lapsed pin needs
+  no cleanup job to stop showing. A place owner can report a pinned review but cannot remove it.
+- `UserPerk`: `userId, kind (PROFILE_BOOST | EXCLUSIVE_FRAME), redemptionId?, endsAt` —
+  `redemptionId` is optional so an admin can grant a perk directly.
+
+### Follow / Notification
+- `Follow`: `id, followerId, followedUserId? | placeId?, createdAt` — exactly one target,
+  and no self-follows (both enforced by DB check constraints).
+- The personalized feed is a **query over follows**, not a stored table. That is cheap enough
+  for the foreseeable row counts and keeps the write path simple; a materialized feed is a
+  later optimization, not a starting position.
+- `Notification`: `id, userId, type, actorId?, placeId?, reviewId?, readAt?, createdAt`
+
+### Subscription
+- `id, userId (unique), plan (FREE | PREMIUM), status, provider?, providerRef?, currentPeriodEnd?, cancelAtPeriodEnd, createdAt`
+- Premium perks (profile frame, review visibility, photo limits, analytics) are all derived
+  from `status` at request time, so they need no columns of their own.
+- `provider` is `"mock"` until a real processor is connected. Payments are deliberately not
+  enabled at launch: the tier gets built, but stays free/waitlist until there's a user base.
+
+### ReviewFlag
+Records a suspicious pattern for human review. Flagging **withholds points**; it never hides
+the review or blocks the account on its own.
+- `id, reviewId, rule, severity (1-3), status (OPEN | CLEARED | CONFIRMED), createdAt`
+- unique on `(reviewId, rule)`, so re-running detection doesn't pile up duplicates.
+
 ## Cached rollups & consistency
 
-`avgRating`/`reviewCount`/`xp`/`level` are all *cached* fields recomputed by
+`avgRating`/`reviewCount`/`xp`/`level`/`pointsBalance` are all *cached* fields recomputed by
 application logic on write (new review, vote, removal) rather than computed live on
-every read — this keeps list/browse pages cheap. `XpEvent` is the source of truth for
-XP so stats can be rebuilt if a cache ever drifts.
+every read — this keeps list/browse pages cheap. `XpEvent` and `PointEvent` are the sources
+of truth, so `npm run db:resync` can rebuild every cache from them after tuning
+`src/lib/gamification.ts` or if a cache is ever suspected to drift.
+
+Point balances are allowed to be recomputed negative: a clawback (`ADMIN_ADJUSTMENT`) may
+exceed what's left. Overdraw is prevented on the *spend* path instead, which checks the
+balance inside the same transaction that writes the negative event.
+
+## Settled
+- Points are called "نقاط" and are **earn-only** — never purchasable with money. Selling them
+  would undercut the incentive to write a good review and drags in payment/regulatory
+  complexity for no gain.
+- A place owner can reply to and report a review, but never remove one — including pinned
+  reviews. Removal rights would cost the platform its credibility, which is the product.
+- XP amounts and point amounts are tunable constants in `src/lib/gamification.ts` rather than
+  DB rows, because the right numbers aren't knowable before real usage and `db:resync`
+  replays every cache after a change.
 
 ## Open questions for next pass
-- Exact XP amounts per event type and rank/tier thresholds (numbers TBD — should be
-  tunable, not hardcoded, so likely a seed-time config rather than magic numbers).
-- Anti-abuse for votes/first-review claims (e.g. rate limiting, no self-voting).
+- Anti-abuse for votes specifically (no self-voting is enforced; vote-ring detection is not).
 - Whether `SkillListing` reviews need a different trust model than place reviews
   (person-to-person reputation vs. venue reputation).
+- Whether the feed needs materializing — revisit when follows-per-user or review volume
+  makes the live query slow, not before.

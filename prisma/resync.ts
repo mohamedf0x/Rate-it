@@ -1,10 +1,12 @@
 /**
  * Replays the cached game state from the source-of-truth rows: reviewer stats and badges
- * from the XP ledger and reviews, place rollups/tiers/badges from their reviews. Run it
- * after tuning anything in src/lib/gamification.ts, or if a cache is ever suspected to drift.
+ * from the XP ledger and reviews, point balances from the points ledger, place
+ * rollups/tiers/badges from their reviews. Run it after tuning anything in
+ * src/lib/gamification.ts, or if a cache is ever suspected to drift.
  */
 import { PrismaClient } from "@prisma/client";
 import { syncReviewerStats } from "../src/lib/xp";
+import { syncPointsBalance } from "../src/lib/points";
 import { refreshTargetRollups } from "../src/lib/reviews";
 
 const prisma = new PrismaClient();
@@ -12,7 +14,10 @@ const prisma = new PrismaClient();
 async function main() {
   const users = await prisma.user.findMany({ select: { id: true } });
   for (const user of users) {
-    await prisma.$transaction((tx) => syncReviewerStats(tx, user.id));
+    await prisma.$transaction(async (tx) => {
+      await syncReviewerStats(tx, user.id);
+      await syncPointsBalance(tx, user.id);
+    });
   }
 
   const places = await prisma.place.findMany({ select: { id: true } });

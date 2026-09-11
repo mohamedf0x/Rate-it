@@ -11,6 +11,36 @@ export const XP_AWARDS = {
   STREAK_BONUS: 10,
 } as const;
 
+// Points are the spendable currency; XP is the activity score. XP lands on every review,
+// but points have to be earned past POINT_RULES below, because points buy things.
+export const POINT_AWARDS = {
+  REVIEW_WRITTEN: 20,
+  FIRST_TO_REVIEW: 50,
+  FIRST_TO_ADD_PLACE: 75,
+  REVIEW_GOT_UPVOTED: 5,
+} as const;
+
+export const POINT_COSTS = {
+  EXCLUSIVE_BADGE: 500,
+  PROFILE_BOOST_WEEK: 750,
+  PINNED_REVIEW_WEEK: 1200,
+} as const;
+
+// Anti-abuse thresholds: points reward genuine contribution, not volume. A review that
+// fails one of these still earns XP, and the withheld award is written to the ledger as a
+// zero-amount PointEvent carrying the reason, so a reviewer can be told why.
+export const POINT_RULES = {
+  minBodyLength: 120,
+  maxAwardedReviewsPerDay: 3,
+  maxAwardedReviewsPerWeek: 10,
+  minAccountAgeHours: 24,
+  burstWindowMinutes: 10,
+  burstReviewLimit: 5,
+} as const;
+
+// Free accounts get the lower limit; premium raises it. Enforced in the API, not the UI.
+export const PHOTO_LIMITS = { free: 3, premium: 10 } as const;
+
 export const REVIEWER_RANKS = [
   { order: 1, name: "Newcomer", minScore: 0 },
   { order: 2, name: "Regular", minScore: 100 },

@@ -79,6 +79,16 @@ model User {
   ownedPlaces   Place[]        @relation("PlaceOwner")
   sessions      Session[]
 
+  pointEvents    PointEvent[]
+  redemptions    Redemption[]
+  perks          UserPerk[]
+  subscription   Subscription?
+  ownerResponses OwnerResponse[] @relation("OwnerResponseAuthor")
+  following      Follow[]        @relation("Follower")
+  followers      Follow[]        @relation("FollowedUser")
+  notifications  Notification[]  @relation("NotificationRecipient")
+  actedNotices   Notification[]  @relation("NotificationActor")
+
   @@map("users")
 }
 
@@ -97,18 +107,22 @@ model Session {
 // ---------- Reviewer gamification ----------
 
 model ReviewerStats {
-  userId               String   @id
-  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  xp                   Int      @default(0)
-  level                Int      @default(1)
+  userId               String    @id
+  user                 User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  xp                   Int       @default(0)
+  level                Int       @default(1)
   rankTierId           String?
   rankTier             RankTier? @relation(fields: [rankTierId], references: [id])
-  reviewCount          Int      @default(0)
-  firstReviewCount     Int      @default(0)
-  helpfulVotesReceived Int      @default(0)
-  currentStreak        Int      @default(0)
-  longestStreak        Int      @default(0)
-  updatedAt            DateTime @updatedAt
+  reviewCount          Int       @default(0)
+  firstReviewCount     Int       @default(0)
+  helpfulVotesReceived Int       @default(0)
+  currentStreak        Int       @default(0)
+  longestStreak        Int       @default(0)
+  // Spendable balance = sum(PointEvent.amount). pointsLifetime counts only the positive
+  // events, so spending points never costs a badge that was already earned.
+  pointsBalance        Int       @default(0)
+  pointsLifetime       Int       @default(0)
+  updatedAt            DateTime  @updatedAt
 
   @@map("reviewer_stats")
 }
@@ -128,13 +142,13 @@ model XpEvent {
 }
 
 model RankTier {
-  id        String    @id @default(cuid())
-  scope     RankScope
-  name      String
-  order     Int
-  minScore  Int
-  icon      String?
-  color     String?
+  id       String    @id @default(cuid())
+  scope    RankScope
+  name     String
+  order    Int
+  minScore Int
+  icon     String?
+  color    String?
 
   reviewerStats ReviewerStats[]
   places        Place[]
@@ -156,17 +170,18 @@ model Badge {
 
   userBadges  UserBadge[]
   placeBadges PlaceBadge[]
+  rewards     Reward[]
 
   @@map("badges")
 }
 
 model UserBadge {
-  id         String   @id @default(cuid())
-  userId     String
-  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  badgeId    String
-  badge      Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
-  awardedAt  DateTime @default(now())
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId   String
+  badge     Badge    @relation(fields: [badgeId], references: [id], onDelete: Cascade)
+  awardedAt DateTime @default(now())
 
   @@unique([userId, badgeId])
   @@map("user_badges")
@@ -212,6 +227,11 @@ model Place {
   badges   PlaceBadge[]
   photos   Photo[]
 
+  followers     Follow[]
+  rewards       Reward[]
+  pins          ReviewPin[]
+  notifications Notification[]
+
   @@index([category])
   @@map("places")
 }
@@ -255,27 +275,32 @@ model SkillListing {
 // ---------- Reviews ----------
 
 model Review {
-  id             String       @id @default(cuid())
+  id             String        @id @default(cuid())
   authorId       String
-  author         User         @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  author         User          @relation(fields: [authorId], references: [id], onDelete: Cascade)
   placeId        String?
-  place          Place?       @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  place          Place?        @relation(fields: [placeId], references: [id], onDelete: Cascade)
   productId      String?
-  product        Product?     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  product        Product?      @relation(fields: [productId], references: [id], onDelete: Cascade)
   skillListingId String?
   skillListing   SkillListing? @relation(fields: [skillListingId], references: [id], onDelete: Cascade)
   rating         Int
   title          String?
   body           String
-  isFirstReview  Boolean      @default(false)
-  helpfulCount   Int          @default(0)
-  unhelpfulCount Int          @default(0)
-  status         ReviewStatus @default(PUBLISHED)
-  createdAt      DateTime     @default(now())
+  isFirstReview  Boolean       @default(false)
+  helpfulCount   Int           @default(0)
+  unhelpfulCount Int           @default(0)
+  status         ReviewStatus  @default(PUBLISHED)
+  createdAt      DateTime      @default(now())
   editedAt       DateTime?
 
   votes  ReviewVote[]
   photos Photo[]
+
+  pins          ReviewPin[]
+  flags         ReviewFlag[]
+  ownerResponse OwnerResponse?
+  notifications Notification[]
 
   @@unique([authorId, placeId])
   @@unique([authorId, productId])
@@ -312,4 +337,262 @@ model Photo {
   createdAt DateTime @default(now())
 
   @@map("photos")
+}
+
+// ---------- Points ----------
+
+enum PointEventType {
+  REVIEW_WRITTEN
+  FIRST_TO_REVIEW
+  FIRST_TO_ADD_PLACE
+  REVIEW_GOT_UPVOTED
+  REDEMPTION
+  ADMIN_ADJUSTMENT
+}
+
+/// Append-only ledger, same shape as XpEvent. XP measures activity and is granted on every
+/// review; points are spendable, so they carry quality gates (src/lib/gamification.ts).
+/// An award that was withheld is still written here with amount 0 and a reason, so a user
+/// can always be told why a review earned nothing.
+model PointEvent {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      PointEventType
+  amount    Int
+  reason    String?
+  refType   String?
+  refId     String?
+  createdAt DateTime       @default(now())
+
+  @@index([userId, createdAt])
+  @@map("point_events")
+}
+
+// ---------- Rewards & perks ----------
+
+enum RewardKind {
+  BADGE
+  PROFILE_BOOST
+  PINNED_REVIEW
+  COUPON
+}
+
+enum RedemptionStatus {
+  PENDING
+  FULFILLED
+  EXPIRED
+  REVOKED
+}
+
+enum PerkKind {
+  PROFILE_BOOST
+  EXCLUSIVE_FRAME
+}
+
+/// Catalog of everything points can buy. COUPON exists so a real discounts programme can be
+/// switched on later without a migration — no partnership is assumed, and rows stay inactive
+/// until an admin flips `active`.
+model Reward {
+  id           String     @id @default(cuid())
+  code         String     @unique
+  kind         RewardKind
+  title        String
+  description  String
+  costPoints   Int
+  badgeId      String?
+  badge        Badge?     @relation(fields: [badgeId], references: [id])
+  placeId      String?
+  place        Place?     @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  durationDays Int?
+  stock        Int?
+  startsAt     DateTime?
+  endsAt       DateTime?
+  active       Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+
+  redemptions Redemption[]
+
+  @@index([active, kind])
+  @@index([placeId])
+  @@map("rewards")
+}
+
+/// One purchase. costPoints is copied in rather than read back from Reward, because catalog
+/// prices change and the receipt must not. Rewards are deactivated, never deleted, so the
+/// default restrict on this relation is deliberate.
+model Redemption {
+  id         String           @id @default(cuid())
+  userId     String
+  user       User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  rewardId   String
+  reward     Reward           @relation(fields: [rewardId], references: [id])
+  costPoints Int
+  status     RedemptionStatus @default(PENDING)
+  code       String?          @unique
+  expiresAt  DateTime?
+  createdAt  DateTime         @default(now())
+
+  pin  ReviewPin?
+  perk UserPerk?
+
+  @@index([userId, createdAt])
+  @@index([rewardId])
+  @@map("redemptions")
+}
+
+/// A bought slot at the top of a place's review list. Expiry is read from endsAt at query
+/// time, so a lapsed pin needs no cleanup job to stop showing.
+model ReviewPin {
+  id           String     @id @default(cuid())
+  reviewId     String
+  review       Review     @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  placeId      String
+  place        Place      @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  redemptionId String     @unique
+  redemption   Redemption @relation(fields: [redemptionId], references: [id], onDelete: Cascade)
+  endsAt       DateTime
+  createdAt    DateTime   @default(now())
+
+  @@unique([placeId, reviewId])
+  @@index([placeId, endsAt])
+  @@map("review_pins")
+}
+
+/// Time-limited profile perks. redemptionId is optional so an admin can grant one directly.
+model UserPerk {
+  id           String      @id @default(cuid())
+  userId       String
+  user         User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind         PerkKind
+  redemptionId String?     @unique
+  redemption   Redemption? @relation(fields: [redemptionId], references: [id], onDelete: SetNull)
+  endsAt       DateTime
+  createdAt    DateTime    @default(now())
+
+  @@index([userId, endsAt])
+  @@map("user_perks")
+}
+
+// ---------- Follows & notifications ----------
+
+/// Follows a reviewer or a place — exactly one, same polymorphic rule as Review. Postgres
+/// treats NULLs as distinct, so the two unique indexes constrain each target independently.
+model Follow {
+  id             String   @id @default(cuid())
+  followerId     String
+  follower       User     @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  followedUserId String?
+  followedUser   User?    @relation("FollowedUser", fields: [followedUserId], references: [id], onDelete: Cascade)
+  placeId        String?
+  place          Place?   @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+
+  @@unique([followerId, followedUserId])
+  @@unique([followerId, placeId])
+  @@index([followedUserId])
+  @@index([placeId])
+  @@map("follows")
+}
+
+enum NotificationType {
+  NEW_REVIEW_ON_FOLLOWED_PLACE
+  FOLLOWED_USER_REVIEWED
+  NEW_FOLLOWER
+  REVIEW_GOT_HELPFUL
+  POINTS_EARNED
+  REWARD_READY
+  BADGE_EARNED
+  OWNER_RESPONDED
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation("NotificationRecipient", fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  actorId   String?
+  actor     User?            @relation("NotificationActor", fields: [actorId], references: [id], onDelete: Cascade)
+  placeId   String?
+  place     Place?           @relation(fields: [placeId], references: [id], onDelete: Cascade)
+  reviewId  String?
+  review    Review?          @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  readAt    DateTime?
+  createdAt DateTime         @default(now())
+
+  @@index([userId, readAt, createdAt])
+  @@map("notifications")
+}
+
+// ---------- Subscriptions ----------
+
+enum SubscriptionPlan {
+  FREE
+  PREMIUM
+}
+
+enum SubscriptionStatus {
+  ACTIVE
+  TRIALING
+  PAST_DUE
+  CANCELED
+}
+
+/// Premium perks (frame, review visibility, photo limits, analytics) are all read from
+/// `status` at request time, so they need no columns of their own. provider is "mock" until
+/// a real processor is connected.
+model Subscription {
+  id                String             @id @default(cuid())
+  userId            String             @unique
+  user              User               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan              SubscriptionPlan   @default(FREE)
+  status            SubscriptionStatus @default(ACTIVE)
+  provider          String?
+  providerRef       String?
+  currentPeriodEnd  DateTime?
+  cancelAtPeriodEnd Boolean            @default(false)
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+
+  @@map("subscriptions")
+}
+
+// ---------- Moderation ----------
+
+enum FlagStatus {
+  OPEN
+  CLEARED
+  CONFIRMED
+}
+
+/// Records a suspicious pattern for review. Flagging withholds points; it never hides the
+/// review or blocks the account on its own.
+model ReviewFlag {
+  id        String     @id @default(cuid())
+  reviewId  String
+  review    Review     @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  rule      String
+  severity  Int
+  status    FlagStatus @default(OPEN)
+  createdAt DateTime   @default(now())
+
+  @@unique([reviewId, rule])
+  @@index([status, createdAt])
+  @@map("review_flags")
+}
+
+/// A place owner's public reply to a review — the Google/Yelp model. Owners answer, they
+/// never remove: one reply per review, editable, shown under the review it answers.
+model OwnerResponse {
+  id        String    @id @default(cuid())
+  reviewId  String    @unique
+  review    Review    @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  authorId  String
+  author    User      @relation("OwnerResponseAuthor", fields: [authorId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime  @default(now())
+  editedAt  DateTime?
+
+  @@index([authorId])
+  @@map("owner_responses")
 }
