@@ -277,6 +277,9 @@ model Review {
   votes  ReviewVote[]
   photos Photo[]
 
+  @@unique([authorId, placeId])
+  @@unique([authorId, productId])
+  @@unique([authorId, skillListingId])
   @@index([placeId])
   @@index([productId])
   @@index([skillListingId])

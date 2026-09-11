@@ -8,6 +8,8 @@ import { canEditPlace } from "@/lib/places";
 import { decodeSlug } from "@/lib/slug";
 import StarRating from "@/components/StarRating";
 import AddProductForm from "@/components/AddProductForm";
+import ReviewForm from "@/components/ReviewForm";
+import ReviewList from "@/components/ReviewList";
 
 export default async function PlaceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const slug = decodeSlug((await params).slug);
@@ -20,12 +22,19 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
     include: {
       rankTier: true,
       products: { orderBy: { createdAt: "desc" } },
+      reviews: {
+        where: { status: "PUBLISHED" },
+        orderBy: [{ helpfulCount: "desc" }, { createdAt: "desc" }],
+        include: { author: { select: { username: true, displayName: true } } },
+      },
     },
   });
 
   if (!place) notFound();
 
   const canEdit = user ? canEditPlace(user, place) : false;
+  const hasReviewed = user ? place.reviews.some((review) => review.author.username === user.username) : false;
+  const canReview = Boolean(user) && place.ownerId !== user?.id;
 
   return (
     <main className="mx-auto max-w-3xl px-6 py-12">
@@ -79,12 +88,12 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           <ul className="mt-3 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
             {place.products.map((product) => (
               <li key={product.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                <div>
+                <Link href={`/products/${product.id}`} className="min-w-0">
                   <p className="font-medium text-neutral-900">{product.name}</p>
                   {product.description ? (
                     <p className="text-sm text-neutral-500">{product.description}</p>
                   ) : null}
-                </div>
+                </Link>
                 {product.reviewCount > 0 ? (
                   <StarRating value={product.avgRating} count={product.reviewCount} />
                 ) : (
@@ -95,6 +104,22 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           </ul>
         )}
         {canEdit ? <AddProductForm locale={locale} slug={place.slug} /> : null}
+      </section>
+
+      <section className="mt-10">
+        <h2 className="text-lg font-semibold">{dict.reviews.title}</h2>
+        {!user ? (
+          <p className="mt-2 text-sm text-neutral-500">
+            <Link href="/login" className="underline">
+              {dict.reviews.loginToReview}
+            </Link>
+          </p>
+        ) : hasReviewed ? (
+          <p className="mt-2 text-sm text-neutral-500">{dict.reviews.alreadyReviewed}</p>
+        ) : canReview ? (
+          <ReviewForm locale={locale} target={{ placeId: place.id }} />
+        ) : null}
+        <ReviewList locale={locale} reviews={place.reviews} />
       </section>
     </main>
   );

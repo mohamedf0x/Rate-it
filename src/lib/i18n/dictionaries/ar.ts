@@ -97,6 +97,27 @@ const ar = {
       notFound: "المكان ده مش موجود",
     },
   },
+  reviews: {
+    title: "التقييمات",
+    empty: "مفيش تقييمات لسه — كن أول واحد يقيّم.",
+    writeTitle: "اكتب تقييمك",
+    ratingLabel: "تقييمك",
+    reviewTitleLabel: "عنوان التقييم (اختياري)",
+    bodyLabel: "رأيك بالتفصيل",
+    bodyPlaceholder: "احكي تجربتك… إيه اللي عجبك وإيه اللي مش عجبك؟",
+    submit: "انشر التقييم",
+    submitting: "جاري النشر…",
+    loginToReview: "سجّل دخولك عشان تقدر تكتب تقييم.",
+    alreadyReviewed: "إنت قيّمت المكان ده قبل كده.",
+    firstBadge: "أول تقييم",
+    helpful: "مفيد",
+    unhelpful: "مش مفيد",
+    genericError: "حصل خطأ، حاول تاني",
+  },
+  products: {
+    backToPlace: "رجوع للمكان",
+    notFound: "المنتج ده مش موجود",
+  },
 } as const;
 
 export default ar;

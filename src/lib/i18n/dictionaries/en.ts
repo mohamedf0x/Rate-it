@@ -98,6 +98,27 @@ const en: Dictionary = {
       notFound: "This place doesn't exist",
     },
   },
+  reviews: {
+    title: "Reviews",
+    empty: "No reviews yet — be the first to rate this.",
+    writeTitle: "Write a review",
+    ratingLabel: "Your rating",
+    reviewTitleLabel: "Review title (optional)",
+    bodyLabel: "Your review",
+    bodyPlaceholder: "Tell people about your experience — what worked, what didn't?",
+    submit: "Post review",
+    submitting: "Posting…",
+    loginToReview: "Log in to write a review.",
+    alreadyReviewed: "You've already reviewed this.",
+    firstBadge: "First review",
+    helpful: "Helpful",
+    unhelpful: "Not helpful",
+    genericError: "Something went wrong",
+  },
+  products: {
+    backToPlace: "Back to place",
+    notFound: "This product doesn't exist",
+  },
 };
 
 export default en;
