@@ -4,6 +4,8 @@ import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary, tierLabel } from "@/lib/i18n/dictionaries";
 import { PLACE_CATEGORIES, type PlaceCategoryValue } from "@/lib/places";
 import StarRating from "@/components/StarRating";
+import PlacesMap from "@/components/map/PlacesMap";
+import type { MapPlace } from "@/lib/map";
 
 function isCategory(value: string | undefined): value is PlaceCategoryValue {
   return !!value && (PLACE_CATEGORIES as readonly string[]).includes(value);
@@ -27,6 +29,19 @@ export default async function BrowsePlacesPage({
     take: 50,
     include: { rankTier: true },
   });
+
+  const mapPlaces: MapPlace[] = places
+    .filter((place) => place.lat !== null && place.lng !== null)
+    .map((place) => ({
+      id: place.id,
+      slug: place.slug,
+      name: place.name,
+      category: place.category,
+      lat: place.lat!,
+      lng: place.lng!,
+      avgRating: place.avgRating,
+      reviewCount: place.reviewCount,
+    }));
 
   return (
     <main className="mx-auto max-w-5xl px-6 py-12">
@@ -69,6 +84,14 @@ export default async function BrowsePlacesPage({
           {t.search}
         </button>
       </form>
+
+      <section className="mt-6">
+        {mapPlaces.length === 0 ? (
+          <p className="text-sm text-neutral-500">{dict.map.noPlacesWithLocation}</p>
+        ) : (
+          <PlacesMap locale={locale} places={mapPlaces} />
+        )}
+      </section>
 
       {places.length === 0 ? (
         <p className="mt-10 text-sm text-neutral-500">{t.empty}</p>

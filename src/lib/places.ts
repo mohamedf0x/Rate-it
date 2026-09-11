@@ -36,6 +36,8 @@ export const placeCreateSchema = z.object({
     .optional()
     .or(z.literal(""))
     .transform((value) => (value ? value : null)),
+  lat: z.coerce.number().min(-90).max(90).nullable().optional(),
+  lng: z.coerce.number().min(-180).max(180).nullable().optional(),
 });
 
 export const placeUpdateSchema = placeCreateSchema.partial();

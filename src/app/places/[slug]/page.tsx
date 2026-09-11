@@ -9,6 +9,7 @@ import { decodeSlug } from "@/lib/slug";
 import { reviewListArgs } from "@/lib/reviews";
 import StarRating from "@/components/StarRating";
 import AddProductForm from "@/components/AddProductForm";
+import PlacesMap from "@/components/map/PlacesMap";
 import ReviewForm from "@/components/ReviewForm";
 import ReviewList from "@/components/ReviewList";
 
@@ -92,6 +93,27 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           </dd>
         ) : null}
       </dl>
+
+      {place.lat !== null && place.lng !== null ? (
+        <section className="mt-6">
+          <PlacesMap
+            locale={locale}
+            height="280px"
+            places={[
+              {
+                id: place.id,
+                slug: place.slug,
+                name: place.name,
+                category: place.category,
+                lat: place.lat,
+                lng: place.lng,
+                avgRating: place.avgRating,
+                reviewCount: place.reviewCount,
+              },
+            ]}
+          />
+        </section>
+      ) : null}
 
       <section className="mt-10">
         <h2 className="text-lg font-semibold">{t.detail.products}</h2>

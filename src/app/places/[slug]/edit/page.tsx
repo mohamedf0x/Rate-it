@@ -23,6 +23,8 @@ export default async function EditPlacePage({ params }: { params: Promise<{ slug
     city: place.city ?? "",
     phone: place.phone ?? "",
     website: place.website ?? "",
+    lat: place.lat,
+    lng: place.lng,
   };
 
   return <PlaceForm locale={locale} slug={slug} initialValues={initialValues} />;

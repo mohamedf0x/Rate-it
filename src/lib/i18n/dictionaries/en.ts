@@ -131,6 +131,18 @@ const en: Dictionary = {
     TOP_RATED: "Top Rated",
     CROWD_FAVORITE: "Crowd Favourite",
   },
+  map: {
+    title: "Places on the map",
+    openPlace: "Open place page",
+    useMyLocation: "📍 My location",
+    pickLocation: "Pick the location on the map",
+    pickHint: "Click the map to drop the pin — drag it to fine-tune.",
+    noLocation: "No location saved for this place.",
+    noPlacesWithLocation: "No places have a location yet — add one and pin it on the map.",
+    showMap: "Show map",
+    hideMap: "Hide map",
+    clearLocation: "Clear location",
+  },
   profile: {
     notFound: "This user doesn't exist",
     level: "Level",
