@@ -2,6 +2,90 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+ * Mashrabiya tokens. Colours are stored as raw RGB channels so Tailwind's alpha
+ * modifiers (bg-brand/10) keep working through the variables.
+ *
+ * Every token is defined here in :root first. The dark block only *redefines* them,
+ * so a colour can never exist in one theme and be missing in the other.
+ */
 :root {
   color-scheme: light dark;
+
+  --bg: 242 245 244;
+  --surface: 255 255 255;
+  --surface-2: 233 238 237;
+  --border: 210 220 218;
+  --border-strong: 182 197 194;
+  --ink: 14 26 27;
+  --muted: 94 112 110;
+
+  /* Glazed tile — the primary. */
+  --brand: 11 110 99;
+  --brand-soft: 220 235 232;
+  /* Text that sits on a --brand fill. Flips with the theme, because the dark-mode brand is
+     a light teal that white text cannot be read against. */
+  --on-brand: 255 255 255;
+  /* Brass — stars, points, rewards. */
+  --gold: 168 115 15;
+  --gold-soft: 246 233 206;
+  /* Lapis is reserved for premium, so it keeps meaning something. */
+  --lapis: 36 81 140;
+  --lapis-soft: 222 230 243;
+
+  --pomegranate: 166 43 56;
+  --pomegranate-soft: 247 226 227;
+  --pistachio: 63 122 56;
+  --pistachio-soft: 224 239 220;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: 10 18 19;
+    --surface: 17 28 29;
+    --surface-2: 23 38 39;
+    --border: 35 56 58;
+    --border-strong: 53 80 79;
+    --ink: 231 239 238;
+    --muted: 145 165 163;
+
+    --brand: 53 173 157;
+    --brand-soft: 16 55 51;
+    --on-brand: 8 24 22;
+    --gold: 224 165 58;
+    --gold-soft: 58 45 16;
+    --lapis: 123 164 224;
+    --lapis-soft: 22 36 60;
+
+    --pomegranate: 231 114 125;
+    --pomegranate-soft: 58 26 30;
+    --pistachio: 134 199 122;
+    --pistachio-soft: 24 45 22;
+  }
+}
+
+@layer base {
+  body {
+    @apply bg-bg text-ink antialiased;
+  }
+
+  /* Arabic is a joined script: letter-spacing breaks the connections between letters.
+     Tracking is applied per-element on Latin text only, never globally. */
+  :lang(ar) {
+    letter-spacing: normal;
+  }
+
+  :focus-visible {
+    @apply outline-none ring-2 ring-gold ring-offset-2 ring-offset-bg;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

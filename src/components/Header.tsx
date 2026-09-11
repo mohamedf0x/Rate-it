@@ -4,29 +4,35 @@ import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import LogoutButton from "@/components/LogoutButton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { buttonClasses } from "@/components/ui/Button";
 
 export default async function Header() {
   const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
   const t = getDictionary(locale).header;
 
   return (
-    <header className="border-b border-neutral-200 bg-white">
-      <div className="mx-auto flex max-w-5xl items-center justify-between px-6 py-4">
-        <Link href="/" className="text-lg font-bold tracking-tight">
+    <header className="sticky top-0 z-20 border-b border-border bg-surface/85 backdrop-blur">
+      <div className="mx-auto flex max-w-5xl items-center justify-between gap-3 px-5 py-3 sm:px-6">
+        <Link href="/" className="shrink-0 whitespace-nowrap font-display text-lg font-bold">
           Rate It
         </Link>
-        <nav className="flex items-center gap-4 text-sm">
-          <Link href="/places" className="text-neutral-600 hover:text-neutral-900">
+        <nav className="flex items-center gap-3 text-sm">
+          <Link
+            href="/places"
+            className="whitespace-nowrap text-muted transition-colors hover:text-ink"
+          >
             {t.browse}
           </Link>
           {user ? (
             <>
-              <Link href={`/u/${user.username}`} className="font-medium text-neutral-900">
-                {user.displayName}
+              <Link
+                href={`/u/${user.username}`}
+                className="flex items-center gap-1.5 font-medium transition-colors hover:text-brand"
+              >
+                <span className="max-w-28 truncate">{user.displayName}</span>
                 {user.stats ? (
-                  <span className="text-xs font-normal text-neutral-500">
-                    {" "}
-                    · {user.stats.xp} {t.xp}
+                  <span className="rounded-md bg-gold-soft px-1.5 py-0.5 text-xs font-semibold tabular-nums text-gold">
+                    {user.stats.xp} {t.xp}
                   </span>
                 ) : null}
               </Link>
@@ -34,13 +40,13 @@ export default async function Header() {
             </>
           ) : (
             <>
-              <Link href="/login" className="text-neutral-600 hover:text-neutral-900">
+              <Link
+                href="/login"
+                className="whitespace-nowrap text-muted transition-colors hover:text-ink"
+              >
                 {t.login}
               </Link>
-              <Link
-                href="/signup"
-                className="rounded-md bg-neutral-900 px-3 py-1.5 font-medium text-white hover:bg-neutral-700"
-              >
+              <Link href="/signup" className={buttonClasses("primary", "sm")}>
                 {t.signup}
               </Link>
             </>

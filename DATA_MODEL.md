@@ -198,6 +198,11 @@ balance inside the same transaction that writes the negative event.
   replays every cache after a change.
 
 ## Open questions for next pass
+- **Place ownership is unverified.** `OwnerResponse` assumes its author actually owns the
+  place, but nothing proves that — `Place.ownerId` is currently just a column anyone could be
+  set to. Before owner replies are opened to real users, ownership needs a verification path:
+  a call/SMS to the venue's listed phone, or manual admin review, or both. Until then the
+  feature should stay behind an admin-only gate.
 - Anti-abuse for votes specifically (no self-voting is enforced; vote-ring detection is not).
 - Whether `SkillListing` reviews need a different trust model than place reviews
   (person-to-person reputation vs. venue reputation).

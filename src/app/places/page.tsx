@@ -3,9 +3,12 @@ import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary, tierLabel } from "@/lib/i18n/dictionaries";
 import { PLACE_CATEGORIES, type PlaceCategoryValue } from "@/lib/places";
+import { CATEGORY_PIN, type MapPlace } from "@/lib/map";
 import StarRating from "@/components/StarRating";
 import PlacesMap from "@/components/map/PlacesMap";
-import type { MapPlace } from "@/lib/map";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import { buttonClasses } from "@/components/ui/Button";
 
 function isCategory(value: string | undefined): value is PlaceCategoryValue {
   return !!value && (PLACE_CATEGORIES as readonly string[]).includes(value);
@@ -43,33 +46,29 @@ export default async function BrowsePlacesPage({
       reviewCount: place.reviewCount,
     }));
 
+  const inputClasses =
+    "rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-none";
+
   return (
-    <main className="mx-auto max-w-5xl px-6 py-12">
-      <div className="flex flex-wrap items-center justify-between gap-4">
+    <main className="mx-auto max-w-5xl px-5 py-10 sm:px-6">
+      <div className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold tracking-tight">{t.browseTitle}</h1>
-          <p className="mt-1 text-sm text-neutral-600">{t.browseSubtitle}</p>
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">{t.browseTitle}</h1>
+          <p className="mt-1.5 text-sm text-muted">{t.browseSubtitle}</p>
         </div>
-        <Link
-          href="/places/new"
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700"
-        >
+        <Link href="/places/new" className={buttonClasses("primary")}>
           {t.addPlace}
         </Link>
       </div>
 
-      <form className="mt-6 flex flex-wrap gap-3">
+      <form className="mt-6 flex flex-wrap gap-2.5">
         <input
           name="q"
           defaultValue={q ?? ""}
           placeholder={t.searchPlaceholder}
-          className="min-w-48 flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className={`min-w-48 flex-1 ${inputClasses}`}
         />
-        <select
-          name="category"
-          defaultValue={category ?? ""}
-          className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-        >
+        <select name="category" defaultValue={category ?? ""} className={inputClasses}>
           <option value="">{t.allCategories}</option>
           {PLACE_CATEGORIES.map((value) => (
             <option key={value} value={value}>
@@ -77,51 +76,72 @@ export default async function BrowsePlacesPage({
             </option>
           ))}
         </select>
-        <button
-          type="submit"
-          className="rounded-md border border-neutral-300 px-4 py-2 text-sm font-medium text-neutral-700 hover:border-neutral-400"
-        >
+        <button type="submit" className={buttonClasses("secondary")}>
           {t.search}
         </button>
       </form>
 
       <section className="mt-6">
         {mapPlaces.length === 0 ? (
-          <p className="text-sm text-neutral-500">{dict.map.noPlacesWithLocation}</p>
+          <Card className="px-5 py-4 text-sm text-muted">{dict.map.noPlacesWithLocation}</Card>
         ) : (
           <PlacesMap locale={locale} places={mapPlaces} />
         )}
       </section>
 
       {places.length === 0 ? (
-        <p className="mt-10 text-sm text-neutral-500">{t.empty}</p>
+        <Card className="mt-6 flex flex-col items-start gap-4 p-8 text-center sm:items-center">
+          <span className="grid size-12 place-items-center rounded-full bg-brand-soft text-xl" aria-hidden="true">
+            📍
+          </span>
+          <p className="max-w-[40ch] text-sm text-muted sm:text-center">{t.empty}</p>
+          <Link href="/places/new" className={buttonClasses("primary")}>
+            {t.addPlace}
+          </Link>
+        </Card>
       ) : (
-        <ul className="mt-6 grid gap-4 sm:grid-cols-2">
-          {places.map((place) => (
-            <li key={place.id} className="rounded-lg border border-neutral-200 bg-white p-4">
-              <Link href={`/places/${place.slug}`} className="block">
-                <div className="flex items-start justify-between gap-3">
-                  <h2 className="font-semibold text-neutral-900">{place.name}</h2>
-                  {place.rankTier ? (
-                    <span className="shrink-0 rounded-full bg-neutral-100 px-2 py-0.5 text-xs text-neutral-600">
-                      {tierLabel(locale, place.rankTier.name)}
-                    </span>
-                  ) : null}
-                </div>
-                <p className="mt-1 text-xs text-neutral-500">
-                  {dict.categories[place.category]}
-                  {place.city ? ` · ${place.city}` : ""}
-                </p>
-                <div className="mt-2">
-                  {place.reviewCount > 0 ? (
-                    <StarRating value={place.avgRating} count={place.reviewCount} />
-                  ) : (
-                    <span className="text-sm text-neutral-400">{t.noRating}</span>
-                  )}
-                </div>
-              </Link>
-            </li>
-          ))}
+        <ul className="mt-6 grid gap-3 sm:grid-cols-2">
+          {places.map((place) => {
+            const pin = CATEGORY_PIN[place.category];
+            return (
+              <li key={place.id}>
+                <Link href={`/places/${place.slug}`} className="block rounded-card">
+                  <Card interactive className="h-full p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex min-w-0 items-start gap-3">
+                        <span
+                          className="grid size-9 shrink-0 place-items-center rounded-full text-base"
+                          style={{ backgroundColor: `${pin.color}1a` }}
+                          aria-hidden="true"
+                        >
+                          {pin.emoji}
+                        </span>
+                        <div className="min-w-0">
+                          <h2 className="truncate font-display font-semibold">{place.name}</h2>
+                          <p className="mt-0.5 truncate text-xs text-muted">
+                            {dict.categories[place.category]}
+                            {place.city ? ` · ${place.city}` : ""}
+                          </p>
+                        </div>
+                      </div>
+                      {place.rankTier ? (
+                        <Badge tone="tier" className="shrink-0">
+                          {tierLabel(locale, place.rankTier.name)}
+                        </Badge>
+                      ) : null}
+                    </div>
+                    <div className="mt-3">
+                      {place.reviewCount > 0 ? (
+                        <StarRating value={place.avgRating} count={place.reviewCount} />
+                      ) : (
+                        <span className="text-sm text-muted">{t.noRating}</span>
+                      )}
+                    </div>
+                  </Card>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </main>

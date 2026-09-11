@@ -12,6 +12,19 @@ const en: Dictionary = {
     title: "Rate It",
     subtitle:
       "Rate shops, restaurants, pharmacies, gaming zones, padel and football courts — plus the specific products and services inside them. Earn XP, ranks and badges as a reviewer; places climb tiers as they earn genuine reviews.",
+    heroEyebrow: "Real reviews from real people",
+    heroTitle: "Know the place before you go",
+    heroLede:
+      "Reviews for shops, restaurants and courts — and for the individual items inside them. Write what you think, earn a rank, help whoever comes next.",
+    browseCta: "Browse places",
+    addCta: "Add a place",
+    categoriesTitle: "Browse by category",
+    statsPlaces: "places",
+    statsReviews: "reviews",
+    statsReviewers: "reviewers",
+    coldStartTitle: "Nothing near you yet?",
+    coldStartBody:
+      "Whoever adds a place first — and reviews it first — earns bonus points. Adding a place takes under a minute.",
   },
   auth: {
     login: {
