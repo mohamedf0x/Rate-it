@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { getCurrentUser } from "@/lib/session";
+import { reviewListArgs } from "@/lib/reviews";
 import StarRating from "@/components/StarRating";
 import ReviewForm from "@/components/ReviewForm";
 import ReviewList from "@/components/ReviewList";
@@ -17,11 +18,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
     where: { id },
     include: {
       place: { select: { slug: true, name: true, ownerId: true } },
-      reviews: {
-        where: { status: "PUBLISHED" },
-        orderBy: [{ helpfulCount: "desc" }, { createdAt: "desc" }],
-        include: { author: { select: { username: true, displayName: true } } },
-      },
+      reviews: reviewListArgs(user?.id ?? null),
     },
   });
 
@@ -61,7 +58,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
         ) : canReview ? (
           <ReviewForm locale={locale} target={{ productId: product.id }} />
         ) : null}
-        <ReviewList locale={locale} reviews={product.reviews} />
+        <ReviewList locale={locale} reviews={product.reviews} viewerId={user?.id ?? null} />
       </section>
     </main>
   );

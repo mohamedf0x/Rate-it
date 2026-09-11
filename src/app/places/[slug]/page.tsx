@@ -6,6 +6,7 @@ import { getDictionary, tierLabel } from "@/lib/i18n/dictionaries";
 import { getCurrentUser } from "@/lib/session";
 import { canEditPlace } from "@/lib/places";
 import { decodeSlug } from "@/lib/slug";
+import { reviewListArgs } from "@/lib/reviews";
 import StarRating from "@/components/StarRating";
 import AddProductForm from "@/components/AddProductForm";
 import ReviewForm from "@/components/ReviewForm";
@@ -22,11 +23,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
     include: {
       rankTier: true,
       products: { orderBy: { createdAt: "desc" } },
-      reviews: {
-        where: { status: "PUBLISHED" },
-        orderBy: [{ helpfulCount: "desc" }, { createdAt: "desc" }],
-        include: { author: { select: { username: true, displayName: true } } },
-      },
+      reviews: reviewListArgs(user?.id ?? null),
     },
   });
 
@@ -119,7 +116,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
         ) : canReview ? (
           <ReviewForm locale={locale} target={{ placeId: place.id }} />
         ) : null}
-        <ReviewList locale={locale} reviews={place.reviews} />
+        <ReviewList locale={locale} reviews={place.reviews} viewerId={user?.id ?? null} />
       </section>
     </main>
   );

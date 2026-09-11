@@ -1,6 +1,8 @@
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
+import { XP_AWARDS } from "@/lib/gamification";
+import { recordXpEvent, syncReviewerStats } from "@/lib/xp";
 
 export const reviewCreateSchema = z
   .object({
@@ -33,6 +35,18 @@ export function targetFromInput(input: ReviewInput): ReviewTarget {
   if (input.placeId) return { kind: "place", id: input.placeId };
   if (input.productId) return { kind: "product", id: input.productId };
   return { kind: "skillListing", id: input.skillListingId! };
+}
+
+/** Review list shape for detail pages: author plus the viewer's own vote (none when logged out). */
+export function reviewListArgs(viewerId: string | null) {
+  return {
+    where: { status: "PUBLISHED" as const },
+    orderBy: [{ helpfulCount: "desc" as const }, { createdAt: "desc" as const }],
+    include: {
+      author: { select: { username: true, displayName: true } },
+      votes: { where: { userId: viewerId ?? "" }, select: { type: true } },
+    },
+  };
 }
 
 export class ReviewError extends Error {
@@ -151,6 +165,26 @@ export async function createReview(input: ReviewInput, authorId: string) {
     });
 
     await refreshTargetRollups(tx, target);
+
+    await recordXpEvent(tx, {
+      userId: authorId,
+      type: "REVIEW_WRITTEN",
+      amount: XP_AWARDS.REVIEW_WRITTEN,
+      refType: "review",
+      refId: review.id,
+    });
+
+    if (review.isFirstReview) {
+      await recordXpEvent(tx, {
+        userId: authorId,
+        type: "FIRST_TO_REVIEW",
+        amount: XP_AWARDS.FIRST_TO_REVIEW,
+        refType: "review",
+        refId: review.id,
+      });
+    }
+
+    await syncReviewerStats(tx, authorId);
 
     return review;
   });
