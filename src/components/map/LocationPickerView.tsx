@@ -49,12 +49,14 @@ function LocateButton({
     );
   }
 
+  // Pinned physically right, not to the text-direction end: Leaflet's zoom control is always
+  // top-left, so a flipping offset would collide with it in RTL.
   return (
     <button
       type="button"
       onClick={locate}
       disabled={locating}
-      className="absolute end-3 top-3 z-[1000] rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm hover:border-neutral-400 disabled:opacity-50"
+      className="absolute right-3 top-3 z-[1000] rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm hover:border-neutral-400 disabled:opacity-50"
     >
       {label}
     </button>
