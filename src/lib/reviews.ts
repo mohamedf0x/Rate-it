@@ -1,7 +1,12 @@
 import { z } from "zod";
 import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
-import { XP_AWARDS } from "@/lib/gamification";
+import {
+  computePlaceQualityScore,
+  PLACE_TIERS,
+  rankForScore,
+  XP_AWARDS,
+} from "@/lib/gamification";
 import { recordXpEvent, syncReviewerStats } from "@/lib/xp";
 
 export const reviewCreateSchema = z
@@ -77,7 +82,18 @@ export async function refreshTargetRollups(tx: Prisma.TransactionClient, target:
   const reviewCount = aggregate._count._all;
 
   if (target.kind === "place") {
-    await tx.place.update({ where: { id: target.id }, data: { avgRating, reviewCount } });
+    // A place's tier tracks its quality score, which weighs rating against volume.
+    const qualityScore = computePlaceQualityScore(avgRating, reviewCount);
+    const tier = rankForScore(PLACE_TIERS, qualityScore);
+    const rankTier = await tx.rankTier.findUnique({
+      where: { scope_order: { scope: "PLACE", order: tier.order } },
+      select: { id: true },
+    });
+
+    await tx.place.update({
+      where: { id: target.id },
+      data: { avgRating, reviewCount, qualityScore, rankTierId: rankTier?.id ?? null },
+    });
   } else if (target.kind === "product") {
     await tx.product.update({ where: { id: target.id }, data: { avgRating, reviewCount } });
   } else {
