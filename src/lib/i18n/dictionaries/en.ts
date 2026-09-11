@@ -119,6 +119,32 @@ const en: Dictionary = {
     backToPlace: "Back to place",
     notFound: "This product doesn't exist",
   },
+  badges: {
+    title: "Badges",
+    empty: "No badges yet — write reviews to start earning them.",
+    FIRST_REVIEW: "First Review",
+    REVIEWER_10: "Regular Reviewer",
+    REVIEWER_50: "Review Machine",
+    PIONEER_5: "Pioneer",
+    HELPFUL_10: "Trusted Reviewer",
+    RISING_STAR: "Rising Star",
+    TOP_RATED: "Top Rated",
+    CROWD_FAVORITE: "Crowd Favourite",
+  },
+  profile: {
+    notFound: "This user doesn't exist",
+    level: "Level",
+    xp: "XP",
+    toNextRank: "XP to the next rank",
+    maxRank: "Top rank reached",
+    reviews: "reviews",
+    firstReviews: "first reviews",
+    helpfulVotes: "helpful votes",
+    reviewsTitle: "Their reviews",
+    noReviews: "No reviews written yet.",
+    memberSince: "Member since",
+    reviewOn: "Review on",
+  },
 };
 
 export default en;

@@ -1,5 +1,6 @@
 import type { Prisma, XpEventType } from "@prisma/client";
-import { REVIEWER_RANKS, rankForScore } from "@/lib/gamification";
+import { earnedReviewerBadges, REVIEWER_RANKS, rankForScore } from "@/lib/gamification";
+import { awardUserBadges } from "@/lib/badges";
 
 type XpEventInput = {
   userId: string;
@@ -50,9 +51,13 @@ export async function syncReviewerStats(tx: Prisma.TransactionClient, userId: st
     helpfulVotesReceived,
   };
 
-  return tx.reviewerStats.upsert({
+  const updated = await tx.reviewerStats.upsert({
     where: { userId },
     create: { userId, ...stats },
     update: stats,
   });
+
+  await awardUserBadges(tx, userId, earnedReviewerBadges(stats));
+
+  return updated;
 }

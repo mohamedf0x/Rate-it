@@ -14,3 +14,9 @@ export function tierLabel(locale: Locale, name: string): string {
   const tiers: Record<string, string> = dictionaries[locale].tiers;
   return tiers[name] ?? name;
 }
+
+/** Same for badges, which are looked up by their catalog code. */
+export function badgeLabel(locale: Locale, code: string, fallback: string): string {
+  const badges: Record<string, string> = dictionaries[locale].badges;
+  return badges[code] ?? fallback;
+}

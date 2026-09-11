@@ -29,6 +29,95 @@ export const PLACE_TIERS = [
   { order: 5, name: "Iconic", minScore: 1500 },
 ] as const;
 
+// Badge catalog. Names/descriptions here are the canonical English copy stored in the DB;
+// the UI translates them by code. Awards are additive — a badge is never taken back.
+export const REVIEWER_BADGES = [
+  {
+    code: "FIRST_REVIEW",
+    name: "First Review",
+    description: "Wrote their first review",
+    icon: "✍️",
+    criteria: "Write 1 review",
+  },
+  {
+    code: "REVIEWER_10",
+    name: "Regular Reviewer",
+    description: "Wrote 10 reviews",
+    icon: "📝",
+    criteria: "Write 10 reviews",
+  },
+  {
+    code: "REVIEWER_50",
+    name: "Review Machine",
+    description: "Wrote 50 reviews",
+    icon: "🏅",
+    criteria: "Write 50 reviews",
+  },
+  {
+    code: "PIONEER_5",
+    name: "Pioneer",
+    description: "First to review 5 different places",
+    icon: "🧭",
+    criteria: "Be first to review 5 targets",
+  },
+  {
+    code: "HELPFUL_10",
+    name: "Trusted Reviewer",
+    description: "Received 10 helpful votes",
+    icon: "👍",
+    criteria: "Receive 10 helpful votes",
+  },
+] as const;
+
+export const PLACE_BADGES = [
+  {
+    code: "RISING_STAR",
+    name: "Rising Star",
+    description: "Climbed out of the unrated tier",
+    icon: "🌟",
+    criteria: "Reach the Rising tier",
+  },
+  {
+    code: "TOP_RATED",
+    name: "Top Rated",
+    description: "Reached the Top Rated tier",
+    icon: "🏆",
+    criteria: "Reach the Top Rated tier",
+  },
+  {
+    code: "CROWD_FAVORITE",
+    name: "Crowd Favourite",
+    description: "Collected 25 reviews",
+    icon: "🔥",
+    criteria: "Collect 25 reviews",
+  },
+] as const;
+
+export function earnedReviewerBadges(stats: {
+  reviewCount: number;
+  firstReviewCount: number;
+  helpfulVotesReceived: number;
+}): string[] {
+  const codes: string[] = [];
+  if (stats.reviewCount >= 1) codes.push("FIRST_REVIEW");
+  if (stats.reviewCount >= 10) codes.push("REVIEWER_10");
+  if (stats.reviewCount >= 50) codes.push("REVIEWER_50");
+  if (stats.firstReviewCount >= 5) codes.push("PIONEER_5");
+  if (stats.helpfulVotesReceived >= 10) codes.push("HELPFUL_10");
+  return codes;
+}
+
+export function earnedPlaceBadges(place: {
+  reviewCount: number;
+  tierOrder: number;
+}): string[] {
+  const codes: string[] = [];
+  if (place.tierOrder >= 2) codes.push("RISING_STAR");
+  if (place.tierOrder >= 4) codes.push("TOP_RATED");
+  if (place.reviewCount >= 25) codes.push("CROWD_FAVORITE");
+  return codes;
+}
+
 /** avgRating in [0,5], reviewCount >= 0 — favors both quality and volume, capped so
  * a handful of 5-star reviews can't jump straight to the top tier. */
 export function computePlaceQualityScore(avgRating: number, reviewCount: number): number {

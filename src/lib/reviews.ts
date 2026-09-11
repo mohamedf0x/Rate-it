@@ -3,11 +3,13 @@ import type { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import {
   computePlaceQualityScore,
+  earnedPlaceBadges,
   PLACE_TIERS,
   rankForScore,
   XP_AWARDS,
 } from "@/lib/gamification";
 import { recordXpEvent, syncReviewerStats } from "@/lib/xp";
+import { awardPlaceBadges } from "@/lib/badges";
 
 export const reviewCreateSchema = z
   .object({
@@ -94,6 +96,8 @@ export async function refreshTargetRollups(tx: Prisma.TransactionClient, target:
       where: { id: target.id },
       data: { avgRating, reviewCount, qualityScore, rankTierId: rankTier?.id ?? null },
     });
+
+    await awardPlaceBadges(tx, target.id, earnedPlaceBadges({ reviewCount, tierOrder: tier.order }));
   } else if (target.kind === "product") {
     await tx.product.update({ where: { id: target.id }, data: { avgRating, reviewCount } });
   } else {

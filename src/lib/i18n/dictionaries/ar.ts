@@ -118,6 +118,33 @@ const ar = {
     backToPlace: "رجوع للمكان",
     notFound: "المنتج ده مش موجود",
   },
+  // Keyed by Badge.code so the DB keeps one canonical copy.
+  badges: {
+    title: "الأوسمة",
+    empty: "مفيش أوسمة لسه — اكتب تقييمات عشان تكسب أوسمة.",
+    FIRST_REVIEW: "أول تقييم",
+    REVIEWER_10: "مراجع منتظم",
+    REVIEWER_50: "ماكينة تقييمات",
+    PIONEER_5: "رائد",
+    HELPFUL_10: "مراجع موثوق",
+    RISING_STAR: "نجم صاعد",
+    TOP_RATED: "الأعلى تقييمًا",
+    CROWD_FAVORITE: "محبوب الجمهور",
+  },
+  profile: {
+    notFound: "المستخدم ده مش موجود",
+    level: "المستوى",
+    xp: "نقاط الخبرة",
+    toNextRank: "نقطة لحد الرتبة الجاية",
+    maxRank: "وصلت لأعلى رتبة",
+    reviews: "تقييمات",
+    firstReviews: "أول تقييم",
+    helpfulVotes: "صوت مفيد",
+    reviewsTitle: "تقييماته",
+    noReviews: "لسه مكتبش أي تقييم.",
+    memberSince: "عضو من",
+    reviewOn: "تقييم على",
+  },
 } as const;
 
 export default ar;

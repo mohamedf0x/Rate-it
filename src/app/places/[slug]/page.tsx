@@ -2,7 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/locale";
-import { getDictionary, tierLabel } from "@/lib/i18n/dictionaries";
+import { badgeLabel, getDictionary, tierLabel } from "@/lib/i18n/dictionaries";
 import { getCurrentUser } from "@/lib/session";
 import { canEditPlace } from "@/lib/places";
 import { decodeSlug } from "@/lib/slug";
@@ -22,6 +22,7 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
     where: { slug },
     include: {
       rankTier: true,
+      badges: { include: { badge: true }, orderBy: { awardedAt: "desc" } },
       products: { orderBy: { createdAt: "desc" } },
       reviews: reviewListArgs(user?.id ?? null),
     },
@@ -60,6 +61,21 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
           </Link>
         ) : null}
       </div>
+
+      {place.badges.length > 0 ? (
+        <ul className="mt-4 flex flex-wrap gap-2">
+          {place.badges.map(({ badge }) => (
+            <li
+              key={badge.id}
+              title={badge.description}
+              className="flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1 text-sm"
+            >
+              <span aria-hidden>{badge.icon}</span>
+              <span>{badgeLabel(locale, badge.code, badge.name)}</span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
 
       {place.description ? (
         <p className="mt-4 whitespace-pre-line text-neutral-700">{place.description}</p>
