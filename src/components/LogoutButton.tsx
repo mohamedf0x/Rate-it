@@ -2,10 +2,13 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getDictionary } from "@/lib/i18n/dictionaries";
+import type { Locale } from "@/lib/i18n/config";
 
-export default function LogoutButton() {
+export default function LogoutButton({ locale }: { locale: Locale }) {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const t = getDictionary(locale).header;
 
   async function handleLogout() {
     setLoading(true);
@@ -20,7 +23,7 @@ export default function LogoutButton() {
       disabled={loading}
       className="text-neutral-500 hover:text-neutral-900 disabled:opacity-50"
     >
-      Log out
+      {t.logout}
     </button>
   );
 }

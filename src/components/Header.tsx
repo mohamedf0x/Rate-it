@@ -1,9 +1,13 @@
 import Link from "next/link";
 import { getCurrentUser } from "@/lib/session";
+import { getLocale } from "@/lib/i18n/locale";
+import { getDictionary } from "@/lib/i18n/dictionaries";
 import LogoutButton from "@/components/LogoutButton";
+import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 export default async function Header() {
-  const user = await getCurrentUser();
+  const [user, locale] = await Promise.all([getCurrentUser(), getLocale()]);
+  const t = getDictionary(locale).header;
 
   return (
     <header className="border-b border-neutral-200 bg-white">
@@ -13,33 +17,35 @@ export default async function Header() {
         </Link>
         <nav className="flex items-center gap-4 text-sm">
           <Link href="/places" className="text-neutral-600 hover:text-neutral-900">
-            Browse
+            {t.browse}
           </Link>
           {user ? (
             <>
               <Link href={`/u/${user.username}`} className="font-medium text-neutral-900">
                 {user.displayName}
                 {user.stats ? (
-                  <span className="ml-1 text-xs font-normal text-neutral-500">
-                    · {user.stats.xp} XP
+                  <span className="text-xs font-normal text-neutral-500">
+                    {" "}
+                    · {user.stats.xp} {t.xp}
                   </span>
                 ) : null}
               </Link>
-              <LogoutButton />
+              <LogoutButton locale={locale} />
             </>
           ) : (
             <>
               <Link href="/login" className="text-neutral-600 hover:text-neutral-900">
-                Log in
+                {t.login}
               </Link>
               <Link
                 href="/signup"
                 className="rounded-md bg-neutral-900 px-3 py-1.5 font-medium text-white hover:bg-neutral-700"
               >
-                Sign up
+                {t.signup}
               </Link>
             </>
           )}
+          <LanguageSwitcher locale={locale} />
         </nav>
       </div>
     </header>
