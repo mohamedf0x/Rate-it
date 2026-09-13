@@ -84,10 +84,11 @@ export default async function HomePage() {
         </ul>
       </section>
 
-      {/* Not a Card: this one carries its own tint, and Card's own background would be
-          competing with it for the same Tailwind property. */}
       <section className="mx-auto max-w-5xl px-5 pb-16 sm:px-6">
-        <div className="flex flex-col gap-4 rounded-card border border-gold/20 bg-gold-soft/70 p-6 sm:flex-row sm:items-center sm:justify-between">
+        <Card
+          tone="gold"
+          className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between"
+        >
           <div>
             <h2 className="font-display text-lg font-semibold">{t.coldStartTitle}</h2>
             <p className="mt-1 max-w-[52ch] text-sm text-muted">{t.coldStartBody}</p>
@@ -95,7 +96,7 @@ export default async function HomePage() {
           <Link href="/places/new" className={buttonClasses("primary", "md", "shrink-0")}>
             {t.addCta}
           </Link>
-        </div>
+        </Card>
       </section>
     </main>
   );
