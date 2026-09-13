@@ -37,6 +37,18 @@
   --pomegranate-soft: 247 226 227;
   --pistachio: 63 122 56;
   --pistachio-soft: 224 239 220;
+
+  /* One accent per place category. Muted jewel tones rather than candy colours, all at
+     comparable saturation so no single category shouts louder than the rest. The icon and
+     its background tint are both drawn from the same accent, which is what keeps a row of
+     them reading as one set. */
+  --cat-restaurant: 180 83 27;
+  --cat-shop: 109 61 155;
+  --cat-pharmacy: 31 122 84;
+  --cat-gaming: 58 79 168;
+  --cat-padel: 150 112 26;
+  --cat-football: 63 122 56;
+  --cat-other: 85 102 98;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -61,6 +73,14 @@
     --pomegranate-soft: 58 26 30;
     --pistachio: 134 199 122;
     --pistachio-soft: 24 45 22;
+
+    --cat-restaurant: 232 148 94;
+    --cat-shop: 180 139 224;
+    --cat-pharmacy: 95 194 149;
+    --cat-gaming: 138 160 232;
+    --cat-padel: 217 180 92;
+    --cat-football: 134 199 122;
+    --cat-other: 154 170 166;
   }
 }
 

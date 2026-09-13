@@ -12,14 +12,17 @@ export const TILE_ATTRIBUTION =
   process.env.NEXT_PUBLIC_MAP_TILE_ATTRIBUTION ??
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
 
+// Pin colours mirror the --cat-* tokens in globals.css (light values), so a category is the
+// same colour on the map as it is on its icon. Leaflet needs a plain string, which is why
+// these are hex here rather than read from the stylesheet.
 export const CATEGORY_PIN: Record<PlaceCategoryValue, { emoji: string; color: string }> = {
-  RESTAURANT: { emoji: "🍽️", color: "#ea580c" },
-  SHOP: { emoji: "🛍️", color: "#7c3aed" },
-  PHARMACY: { emoji: "💊", color: "#059669" },
-  GAMING_ZONE: { emoji: "🎮", color: "#2563eb" },
-  PADEL_COURT: { emoji: "🎾", color: "#ca8a04" },
-  FOOTBALL_COURT: { emoji: "⚽", color: "#16a34a" },
-  OTHER: { emoji: "📍", color: "#525252" },
+  RESTAURANT: { emoji: "🍽️", color: "#b4531b" },
+  SHOP: { emoji: "🛍️", color: "#6d3d9b" },
+  PHARMACY: { emoji: "💊", color: "#1f7a54" },
+  GAMING_ZONE: { emoji: "🎮", color: "#3a4fa8" },
+  PADEL_COURT: { emoji: "🎾", color: "#96701a" },
+  FOOTBALL_COURT: { emoji: "⚽", color: "#3f7a38" },
+  OTHER: { emoji: "📍", color: "#556662" },
 };
 
 export type MapPlace = {

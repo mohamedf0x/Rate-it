@@ -27,6 +27,15 @@ const config: Config = {
         "pomegranate-soft": token("pomegranate-soft"),
         pistachio: token("pistachio"),
         "pistachio-soft": token("pistachio-soft"),
+        cat: {
+          restaurant: token("cat-restaurant"),
+          shop: token("cat-shop"),
+          pharmacy: token("cat-pharmacy"),
+          gaming: token("cat-gaming"),
+          padel: token("cat-padel"),
+          football: token("cat-football"),
+          other: token("cat-other"),
+        },
       },
       fontFamily: {
         display: ["var(--font-display)", "system-ui", "sans-serif"],

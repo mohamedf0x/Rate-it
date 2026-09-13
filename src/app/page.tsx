@@ -3,8 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import { PLACE_CATEGORIES } from "@/lib/places";
-import { CATEGORY_PIN } from "@/lib/map";
 import { buttonClasses } from "@/components/ui/Button";
+import CategoryIcon from "@/components/ui/CategoryIcon";
 import Card from "@/components/ui/Card";
 import Lattice from "@/components/ui/Lattice";
 
@@ -16,7 +16,9 @@ export default async function HomePage() {
   const [placeCount, reviewCount, reviewerCount] = await Promise.all([
     prisma.place.count(),
     prisma.review.count({ where: { status: "PUBLISHED" } }),
-    prisma.user.count({ where: { reviews: { some: { status: "PUBLISHED" } } } }),
+    prisma.user.count({
+      where: { reviews: { some: { status: "PUBLISHED" } } },
+    }),
   ]);
 
   const stats = [
@@ -51,7 +53,9 @@ export default async function HomePage() {
             {stats.map((stat) => (
               <div key={stat.label} className="flex items-baseline gap-2">
                 <dt className="sr-only">{stat.label}</dt>
-                <dd className="font-display text-2xl font-semibold tabular-nums">{stat.value}</dd>
+                <dd className="font-display text-2xl font-semibold tabular-nums">
+                  {stat.value}
+                </dd>
                 <span className="text-sm text-muted">{stat.label}</span>
               </div>
             ))}
@@ -60,27 +64,25 @@ export default async function HomePage() {
       </section>
 
       <section className="mx-auto max-w-5xl px-5 py-12 sm:px-6">
-        <h2 className="font-display text-xl font-semibold">{t.categoriesTitle}</h2>
+        <h2 className="font-display text-xl font-semibold">
+          {t.categoriesTitle}
+        </h2>
         <ul className="mt-5 grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-4">
-          {PLACE_CATEGORIES.map((category) => {
-            const pin = CATEGORY_PIN[category];
-            return (
-              <li key={category}>
-                <Link href={`/places?category=${category}`} className="block rounded-card">
-                  <Card interactive className="flex items-center gap-3 p-4">
-                    <span
-                      className="grid size-10 shrink-0 place-items-center rounded-full text-lg"
-                      style={{ backgroundColor: `${pin.color}1a` }}
-                      aria-hidden="true"
-                    >
-                      {pin.emoji}
-                    </span>
-                    <span className="font-medium">{dict.categories[category]}</span>
-                  </Card>
-                </Link>
-              </li>
-            );
-          })}
+          {PLACE_CATEGORIES.map((category) => (
+            <li key={category}>
+              <Link
+                href={`/places?category=${category}`}
+                className="block rounded-card"
+              >
+                <Card interactive className="flex items-center gap-3 p-4">
+                  <CategoryIcon category={category} size="lg" />
+                  <span className="font-medium">
+                    {dict.categories[category]}
+                  </span>
+                </Card>
+              </Link>
+            </li>
+          ))}
         </ul>
       </section>
 
@@ -90,10 +92,17 @@ export default async function HomePage() {
           className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between"
         >
           <div>
-            <h2 className="font-display text-lg font-semibold">{t.coldStartTitle}</h2>
-            <p className="mt-1 max-w-[52ch] text-sm text-muted">{t.coldStartBody}</p>
+            <h2 className="font-display text-lg font-semibold">
+              {t.coldStartTitle}
+            </h2>
+            <p className="mt-1 max-w-[52ch] text-sm text-muted">
+              {t.coldStartBody}
+            </p>
           </div>
-          <Link href="/places/new" className={buttonClasses("primary", "md", "shrink-0")}>
+          <Link
+            href="/places/new"
+            className={buttonClasses("primary", "md", "shrink-0")}
+          >
             {t.addCta}
           </Link>
         </Card>
