@@ -12,6 +12,10 @@ import AddProductForm from "@/components/AddProductForm";
 import PlacesMap from "@/components/map/PlacesMap";
 import ReviewForm from "@/components/ReviewForm";
 import ReviewList from "@/components/ReviewList";
+import Card from "@/components/ui/Card";
+import Badge from "@/components/ui/Badge";
+import CategoryIcon from "@/components/ui/CategoryIcon";
+import { buttonClasses } from "@/components/ui/Button";
 
 export default async function PlaceDetailPage({ params }: { params: Promise<{ slug: string }> }) {
   const slug = decodeSlug((await params).slug);
@@ -32,31 +36,39 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
   if (!place) notFound();
 
   const canEdit = user ? canEditPlace(user, place) : false;
-  const hasReviewed = user ? place.reviews.some((review) => review.author.username === user.username) : false;
+  const hasReviewed = user
+    ? place.reviews.some((review) => review.author.username === user.username)
+    : false;
   const canReview = Boolean(user) && place.ownerId !== user?.id;
+  const hasContact = place.address || place.phone || place.website;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
+    <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6">
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight">{place.name}</h1>
-          <p className="mt-1 text-sm text-neutral-500">
-            {dict.categories[place.category]}
-            {place.city ? ` · ${place.city}` : ""}
-            {place.rankTier ? ` · ${tierLabel(locale, place.rankTier.name)}` : ""}
-          </p>
-          <div className="mt-2">
-            {place.reviewCount > 0 ? (
-              <StarRating value={place.avgRating} count={place.reviewCount} />
-            ) : (
-              <span className="text-sm text-neutral-400">{t.noRating}</span>
-            )}
+        <div className="flex min-w-0 items-start gap-3">
+          <CategoryIcon category={place.category} size="lg" />
+          <div className="min-w-0">
+            <h1 className="font-display text-2xl font-bold sm:text-3xl">{place.name}</h1>
+            <p className="mt-1 text-sm text-muted">
+              {dict.categories[place.category]}
+              {place.city ? ` · ${place.city}` : ""}
+            </p>
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {place.reviewCount > 0 ? (
+                <StarRating value={place.avgRating} count={place.reviewCount} size="lg" />
+              ) : (
+                <span className="text-sm text-muted">{t.noRating}</span>
+              )}
+              {place.rankTier ? (
+                <Badge tone="tier">{tierLabel(locale, place.rankTier.name)}</Badge>
+              ) : null}
+            </div>
           </div>
         </div>
         {canEdit ? (
           <Link
             href={`/places/${place.slug}/edit`}
-            className="rounded-md border border-neutral-300 px-3 py-1.5 text-sm font-medium text-neutral-700 hover:border-neutral-400"
+            className={buttonClasses("secondary", "sm", "shrink-0")}
           >
             {t.detail.edit}
           </Link>
@@ -66,33 +78,42 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       {place.badges.length > 0 ? (
         <ul className="mt-4 flex flex-wrap gap-2">
           {place.badges.map(({ badge }) => (
-            <li
-              key={badge.id}
-              title={badge.description}
-              className="flex items-center gap-1.5 rounded-full border border-neutral-200 bg-white px-3 py-1 text-sm"
-            >
-              <span aria-hidden>{badge.icon}</span>
-              <span>{badgeLabel(locale, badge.code, badge.name)}</span>
+            <li key={badge.id} title={badge.description}>
+              <Badge tone="gold" icon={badge.icon ?? undefined}>
+                {badgeLabel(locale, badge.code, badge.name)}
+              </Badge>
             </li>
           ))}
         </ul>
       ) : null}
 
       {place.description ? (
-        <p className="mt-4 whitespace-pre-line text-neutral-700">{place.description}</p>
+        <p className="mt-5 whitespace-pre-line leading-relaxed">{place.description}</p>
       ) : null}
 
-      <dl className="mt-4 space-y-1 text-sm text-neutral-600">
-        {place.address ? <dd>{place.address}</dd> : null}
-        {place.phone ? <dd dir="ltr" className="text-start">{place.phone}</dd> : null}
-        {place.website ? (
-          <dd>
-            <a href={place.website} dir="ltr" className="text-start underline" target="_blank" rel="noreferrer">
-              {place.website}
-            </a>
-          </dd>
-        ) : null}
-      </dl>
+      {hasContact ? (
+        <Card className="mt-5 divide-y divide-border">
+          {place.address ? <p className="px-4 py-3 text-sm">{place.address}</p> : null}
+          {place.phone ? (
+            <p dir="ltr" className="px-4 py-3 text-start text-sm tabular-nums">
+              {place.phone}
+            </p>
+          ) : null}
+          {place.website ? (
+            <p className="px-4 py-3 text-sm">
+              <a
+                href={place.website}
+                dir="ltr"
+                className="inline-block text-start text-brand underline underline-offset-2"
+                target="_blank"
+                rel="noreferrer"
+              >
+                {place.website}
+              </a>
+            </p>
+          ) : null}
+        </Card>
+      ) : null}
 
       {place.lat !== null && place.lng !== null ? (
         <section className="mt-6">
@@ -116,41 +137,41 @@ export default async function PlaceDetailPage({ params }: { params: Promise<{ sl
       ) : null}
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">{t.detail.products}</h2>
+        <h2 className="font-display text-lg font-semibold">{t.detail.products}</h2>
         {place.products.length === 0 ? (
-          <p className="mt-2 text-sm text-neutral-500">{t.detail.noProducts}</p>
+          <Card className="mt-3 px-4 py-5 text-sm text-muted">{t.detail.noProducts}</Card>
         ) : (
-          <ul className="mt-3 divide-y divide-neutral-200 rounded-lg border border-neutral-200 bg-white">
+          <Card className="mt-3 divide-y divide-border">
             {place.products.map((product) => (
-              <li key={product.id} className="flex items-center justify-between gap-4 px-4 py-3">
-                <Link href={`/products/${product.id}`} className="min-w-0">
-                  <p className="font-medium text-neutral-900">{product.name}</p>
+              <div key={product.id} className="flex items-center justify-between gap-4 px-4 py-3">
+                <Link href={`/products/${product.id}`} className="min-w-0 hover:text-brand">
+                  <p className="truncate font-medium">{product.name}</p>
                   {product.description ? (
-                    <p className="text-sm text-neutral-500">{product.description}</p>
+                    <p className="truncate text-sm text-muted">{product.description}</p>
                   ) : null}
                 </Link>
                 {product.reviewCount > 0 ? (
                   <StarRating value={product.avgRating} count={product.reviewCount} />
                 ) : (
-                  <span className="shrink-0 text-xs text-neutral-400">{t.noRating}</span>
+                  <span className="shrink-0 text-xs text-muted">{t.noRating}</span>
                 )}
-              </li>
+              </div>
             ))}
-          </ul>
+          </Card>
         )}
         {canEdit ? <AddProductForm locale={locale} slug={place.slug} /> : null}
       </section>
 
       <section className="mt-10">
-        <h2 className="text-lg font-semibold">{dict.reviews.title}</h2>
+        <h2 className="font-display text-lg font-semibold">{dict.reviews.title}</h2>
         {!user ? (
-          <p className="mt-2 text-sm text-neutral-500">
-            <Link href="/login" className="underline">
+          <p className="mt-3 text-sm text-muted">
+            <Link href="/login" className="text-brand underline underline-offset-2">
               {dict.reviews.loginToReview}
             </Link>
           </p>
         ) : hasReviewed ? (
-          <p className="mt-2 text-sm text-neutral-500">{dict.reviews.alreadyReviewed}</p>
+          <p className="mt-3 text-sm text-muted">{dict.reviews.alreadyReviewed}</p>
         ) : canReview ? (
           <ReviewForm locale={locale} target={{ placeId: place.id }} />
         ) : null}

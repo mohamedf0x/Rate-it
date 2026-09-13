@@ -37,10 +37,10 @@ export default function ReviewVoteButtons({
   }
 
   const buttonClass = (active: boolean) =>
-    `rounded-md border px-2 py-1 text-xs ${
+    `rounded-lg border px-2.5 py-1.5 text-xs font-medium transition-[background-color,border-color,transform] active:scale-[0.97] ${
       active
-        ? "border-neutral-900 bg-neutral-900 text-white"
-        : "border-neutral-300 text-neutral-600 hover:border-neutral-400"
+        ? "border-transparent bg-brand text-on-brand"
+        : "border-border text-muted hover:border-border-strong hover:text-ink"
     } disabled:opacity-50`;
 
   return (
