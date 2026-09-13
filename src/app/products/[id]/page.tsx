@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { ArrowLeft } from "lucide-react";
 import { prisma } from "@/lib/prisma";
 import { getLocale } from "@/lib/i18n/locale";
 import { getDictionary } from "@/lib/i18n/dictionaries";
@@ -8,6 +9,7 @@ import { reviewListArgs } from "@/lib/reviews";
 import StarRating from "@/components/StarRating";
 import ReviewForm from "@/components/ReviewForm";
 import ReviewList from "@/components/ReviewList";
+import CategoryIcon from "@/components/ui/CategoryIcon";
 
 export default async function ProductDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -17,7 +19,7 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const product = await prisma.product.findUnique({
     where: { id },
     include: {
-      place: { select: { slug: true, name: true, ownerId: true } },
+      place: { select: { slug: true, name: true, ownerId: true, category: true } },
       reviews: reviewListArgs(user?.id ?? null),
     },
   });
@@ -30,31 +32,44 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
   const canReview = Boolean(user) && product.place.ownerId !== user?.id;
 
   return (
-    <main className="mx-auto max-w-3xl px-6 py-12">
-      <Link href={`/places/${product.place.slug}`} className="text-sm text-neutral-500 hover:text-neutral-900">
-        ← {product.place.name}
+    <main className="mx-auto max-w-3xl px-5 py-10 sm:px-6">
+      <Link
+        href={`/places/${product.place.slug}`}
+        className="inline-flex items-center gap-1.5 text-sm text-muted transition-colors hover:text-ink"
+      >
+        {/* Back points the other way in Arabic, so the arrow is mirrored rather than swapped. */}
+        <ArrowLeft size={15} className="rtl:rotate-180" aria-hidden="true" />
+        {product.place.name}
       </Link>
 
-      <h1 className="mt-3 text-2xl font-bold tracking-tight">{product.name}</h1>
-      {product.description ? <p className="mt-2 text-neutral-700">{product.description}</p> : null}
-      <div className="mt-2">
-        {product.reviewCount > 0 ? (
-          <StarRating value={product.avgRating} count={product.reviewCount} />
-        ) : (
-          <span className="text-sm text-neutral-400">{dict.places.noRating}</span>
-        )}
+      <div className="mt-4 flex items-start gap-3">
+        <CategoryIcon category={product.place.category} size="lg" />
+        <div className="min-w-0">
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">{product.name}</h1>
+          <div className="mt-2">
+            {product.reviewCount > 0 ? (
+              <StarRating value={product.avgRating} count={product.reviewCount} size="lg" />
+            ) : (
+              <span className="text-sm text-muted">{dict.places.noRating}</span>
+            )}
+          </div>
+        </div>
       </div>
 
+      {product.description ? (
+        <p className="mt-4 whitespace-pre-line leading-relaxed">{product.description}</p>
+      ) : null}
+
       <section className="mt-8">
-        <h2 className="text-lg font-semibold">{dict.reviews.title}</h2>
+        <h2 className="font-display text-lg font-semibold">{dict.reviews.title}</h2>
         {!user ? (
-          <p className="mt-2 text-sm text-neutral-500">
-            <Link href="/login" className="underline">
+          <p className="mt-3 text-sm text-muted">
+            <Link href="/login" className="text-brand underline underline-offset-2">
               {dict.reviews.loginToReview}
             </Link>
           </p>
         ) : hasReviewed ? (
-          <p className="mt-2 text-sm text-neutral-500">{dict.reviews.alreadyReviewed}</p>
+          <p className="mt-3 text-sm text-muted">{dict.reviews.alreadyReviewed}</p>
         ) : canReview ? (
           <ReviewForm locale={locale} target={{ productId: product.id }} />
         ) : null}
