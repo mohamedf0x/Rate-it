@@ -4,6 +4,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
+import { buttonClasses } from "@/components/ui/Button";
+import { errorClasses, inputClasses } from "@/components/ui/form";
 
 export default function AddProductForm({ locale, slug }: { locale: Locale; slug: string }) {
   const router = useRouter();
@@ -37,31 +39,31 @@ export default function AddProductForm({ locale, slug }: { locale: Locale; slug:
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 rounded-lg border border-dashed border-neutral-300 p-4">
-      <p className="text-sm font-medium text-neutral-700">{t.addProduct}</p>
+    <form onSubmit={handleSubmit} className="mt-4 rounded-card border border-dashed border-border-strong p-4">
+      <p className="text-sm font-medium">{t.addProduct}</p>
       <div className="mt-3 flex flex-wrap gap-3">
         <input
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder={t.productName}
-          className="min-w-48 flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className={`min-w-48 flex-1 ${inputClasses}`}
         />
         <input
           value={description}
           onChange={(e) => setDescription(e.target.value)}
           placeholder={t.productDescription}
-          className="min-w-48 flex-1 rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className={`min-w-48 flex-1 ${inputClasses}`}
         />
         <button
           type="submit"
           disabled={loading}
-          className="rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+          className={buttonClasses("primary")}
         >
           {t.submitProduct}
         </button>
       </div>
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className={`mt-2 ${errorClasses}`}>{error}</p> : null}
     </form>
   );
 }

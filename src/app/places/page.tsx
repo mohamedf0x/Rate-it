@@ -10,6 +10,7 @@ import Card from "@/components/ui/Card";
 import Badge from "@/components/ui/Badge";
 import CategoryIcon from "@/components/ui/CategoryIcon";
 import { buttonClasses } from "@/components/ui/Button";
+import { inputClasses } from "@/components/ui/form";
 
 function isCategory(value: string | undefined): value is PlaceCategoryValue {
   return !!value && (PLACE_CATEGORIES as readonly string[]).includes(value);
@@ -50,9 +51,6 @@ export default async function BrowsePlacesPage({
       reviewCount: place.reviewCount,
     }));
 
-  const inputClasses =
-    "rounded-lg border border-border bg-surface px-3 py-2.5 text-sm text-ink placeholder:text-muted focus:border-brand focus:outline-none";
-
   return (
     <main className="mx-auto max-w-5xl px-5 py-10 sm:px-6">
       <div className="flex flex-wrap items-end justify-between gap-4">
@@ -77,7 +75,7 @@ export default async function BrowsePlacesPage({
         <select
           name="category"
           defaultValue={category ?? ""}
-          className={inputClasses}
+          className={`w-auto ${inputClasses}`}
         >
           <option value="">{t.allCategories}</option>
           {PLACE_CATEGORIES.map((value) => (

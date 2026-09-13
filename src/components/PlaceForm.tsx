@@ -6,6 +6,9 @@ import { getDictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
 import { PLACE_CATEGORIES, type PlaceCategoryValue } from "@/lib/places";
 import LocationPicker from "@/components/map/LocationPicker";
+import { buttonClasses } from "@/components/ui/Button";
+import CategoryIcon from "@/components/ui/CategoryIcon";
+import { errorClasses, inputClasses, labelClasses } from "@/components/ui/form";
 
 export type PlaceFormValues = {
   name: string;
@@ -77,11 +80,11 @@ export default function PlaceForm({
   }
 
   return (
-    <main className="mx-auto max-w-lg px-6 py-12">
-      <h1 className="text-2xl font-bold tracking-tight">{isEdit ? t.editTitle : t.createTitle}</h1>
+    <main className="mx-auto max-w-lg px-5 py-10 sm:px-6">
+      <h1 className="font-display text-2xl font-bold">{isEdit ? t.editTitle : t.createTitle}</h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="name" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="name" className={labelClasses}>
             {t.name}
           </label>
           <input
@@ -90,28 +93,34 @@ export default function PlaceForm({
             minLength={2}
             value={values.name}
             onChange={(e) => update("name", e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
         </div>
         <div>
-          <label htmlFor="category" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="category" className={labelClasses}>
             {t.category}
           </label>
-          <select
-            id="category"
-            value={values.category}
-            onChange={(e) => update("category", e.target.value as PlaceCategoryValue)}
-            className="mt-1 w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
-          >
-            {PLACE_CATEGORIES.map((category) => (
-              <option key={category} value={category}>
-                {dict.categories[category]}
-              </option>
-            ))}
-          </select>
+          {/* A native <option> cannot hold an SVG, so the icon sits beside the select and
+              follows the selection rather than being repeated down the list. Keeping the
+              native control preserves its keyboard and mobile behaviour. */}
+          <div className="mt-1 flex items-center gap-2.5">
+            <CategoryIcon category={values.category} size="lg" />
+            <select
+              id="category"
+              value={values.category}
+              onChange={(e) => update("category", e.target.value as PlaceCategoryValue)}
+              className={inputClasses}
+            >
+              {PLACE_CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {dict.categories[category]}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
         <div>
-          <label htmlFor="description" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="description" className={labelClasses}>
             {t.description}
           </label>
           <textarea
@@ -119,23 +128,23 @@ export default function PlaceForm({
             rows={3}
             value={values.description}
             onChange={(e) => update("description", e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label htmlFor="city" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="city" className={labelClasses}>
               {t.city}
             </label>
             <input
               id="city"
               value={values.city}
               onChange={(e) => update("city", e.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+              className={`mt-1 ${inputClasses}`}
             />
           </div>
           <div>
-            <label htmlFor="phone" className="block text-sm font-medium text-neutral-700">
+            <label htmlFor="phone" className={labelClasses}>
               {t.phone}
             </label>
             <input
@@ -143,23 +152,23 @@ export default function PlaceForm({
               dir="ltr"
               value={values.phone}
               onChange={(e) => update("phone", e.target.value)}
-              className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+              className={`mt-1 ${inputClasses}`}
             />
           </div>
         </div>
         <div>
-          <label htmlFor="address" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="address" className={labelClasses}>
             {t.address}
           </label>
           <input
             id="address"
             value={values.address}
             onChange={(e) => update("address", e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
         </div>
         <div>
-          <label htmlFor="website" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="website" className={labelClasses}>
             {t.website}
           </label>
           <input
@@ -169,12 +178,12 @@ export default function PlaceForm({
             placeholder="https://"
             value={values.website}
             onChange={(e) => update("website", e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
         </div>
         <div>
-          <span className="block text-sm font-medium text-neutral-700">{mapT.pickLocation}</span>
-          <p className="mt-1 text-xs text-neutral-500">{mapT.pickHint}</p>
+          <span className={labelClasses}>{mapT.pickLocation}</span>
+          <p className="mt-1 text-xs text-muted">{mapT.pickHint}</p>
           <div className="mt-2">
             <LocationPicker
               locale={locale}
@@ -184,14 +193,14 @@ export default function PlaceForm({
             />
           </div>
           {values.lat !== null && values.lng !== null ? (
-            <div className="mt-2 flex items-center gap-3 text-xs text-neutral-500">
+            <div className="mt-2 flex items-center gap-3 text-xs text-muted">
               <span dir="ltr">
                 {values.lat.toFixed(5)}, {values.lng.toFixed(5)}
               </span>
               <button
                 type="button"
                 onClick={() => setValues((current) => ({ ...current, lat: null, lng: null }))}
-                className="underline hover:text-neutral-900"
+                className="underline hover:text-ink"
               >
                 {mapT.clearLocation}
               </button>
@@ -199,11 +208,11 @@ export default function PlaceForm({
           ) : null}
         </div>
 
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className={errorClasses}>{error}</p> : null}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+          className={buttonClasses("primary", "md", "w-full")}
         >
           {loading ? t.submitting : isEdit ? t.submitEdit : t.submitCreate}
         </button>

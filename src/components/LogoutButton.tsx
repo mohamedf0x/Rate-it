@@ -21,7 +21,7 @@ export default function LogoutButton({ locale }: { locale: Locale }) {
     <button
       onClick={handleLogout}
       disabled={loading}
-      className="text-neutral-500 hover:text-neutral-900 disabled:opacity-50"
+      className="text-muted transition-colors hover:text-ink disabled:opacity-50"
     >
       {t.logout}
     </button>

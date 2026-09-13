@@ -18,7 +18,7 @@ export default function LanguageSwitcher({ locale }: { locale: Locale }) {
     <button
       onClick={switchLocale}
       aria-label={next === "ar" ? "التبديل إلى العربية" : "Switch to English"}
-      className="rounded-md border border-neutral-300 px-2 py-1 text-xs font-medium text-neutral-600 hover:border-neutral-400 hover:text-neutral-900"
+      className="rounded-md border border-border px-2 py-1 text-xs font-medium text-muted transition-colors hover:border-border-strong hover:text-ink"
     >
       {next === "ar" ? "العربية" : "English"}
     </button>

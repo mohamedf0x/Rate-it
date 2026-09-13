@@ -4,6 +4,9 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
+import Card from "@/components/ui/Card";
+import { buttonClasses } from "@/components/ui/Button";
+import { errorClasses, inputClasses, labelClasses } from "@/components/ui/form";
 
 type Target = { placeId: string } | { productId: string } | { skillListingId: string };
 
@@ -41,11 +44,11 @@ export default function ReviewForm({ locale, target }: { locale: Locale; target:
   }
 
   return (
-    <form onSubmit={handleSubmit} className="mt-4 rounded-lg border border-neutral-200 bg-white p-4">
-      <p className="font-medium text-neutral-900">{t.writeTitle}</p>
+    <Card as="form" onSubmit={handleSubmit} className="mt-4 p-4">
+      <p className="font-display font-semibold">{t.writeTitle}</p>
 
       <div className="mt-3">
-        <span className="block text-sm font-medium text-neutral-700">{t.ratingLabel}</span>
+        <span className={labelClasses}>{t.ratingLabel}</span>
         <div className="mt-1 flex gap-1" dir="ltr">
           {[1, 2, 3, 4, 5].map((value) => (
             <button
@@ -54,7 +57,7 @@ export default function ReviewForm({ locale, target }: { locale: Locale; target:
               onClick={() => setRating(value)}
               aria-label={`${value}`}
               aria-pressed={rating === value}
-              className={`text-2xl leading-none ${value <= rating ? "text-amber-500" : "text-neutral-300"} hover:text-amber-400`}
+              className={`text-2xl leading-none transition-transform hover:scale-110 ${value <= rating ? "text-gold" : "text-border-strong"}`}
             >
               ★
             </button>
@@ -63,19 +66,19 @@ export default function ReviewForm({ locale, target }: { locale: Locale; target:
       </div>
 
       <div className="mt-3">
-        <label htmlFor="review-title" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="review-title" className={labelClasses}>
           {t.reviewTitleLabel}
         </label>
         <input
           id="review-title"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className={`mt-1 ${inputClasses}`}
         />
       </div>
 
       <div className="mt-3">
-        <label htmlFor="review-body" className="block text-sm font-medium text-neutral-700">
+        <label htmlFor="review-body" className={labelClasses}>
           {t.bodyLabel}
         </label>
         <textarea
@@ -86,19 +89,19 @@ export default function ReviewForm({ locale, target }: { locale: Locale; target:
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder={t.bodyPlaceholder}
-          className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+          className={`mt-1 ${inputClasses}`}
         />
       </div>
 
-      {error ? <p className="mt-2 text-sm text-red-600">{error}</p> : null}
+      {error ? <p className={`mt-2 ${errorClasses}`}>{error}</p> : null}
 
       <button
         type="submit"
         disabled={loading || rating === 0}
-        className="mt-3 rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+        className={buttonClasses("primary", "md", "mt-3")}
       >
         {loading ? t.submitting : t.submit}
       </button>
-    </form>
+    </Card>
   );
 }

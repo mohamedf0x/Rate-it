@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import { useState, type FormEvent } from "react";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
+import { buttonClasses } from "@/components/ui/Button";
+import { errorClasses, inputClasses, labelClasses } from "@/components/ui/form";
 
 export default function SignupForm({ locale }: { locale: Locale }) {
   const router = useRouter();
@@ -39,11 +41,11 @@ export default function SignupForm({ locale }: { locale: Locale }) {
   }
 
   return (
-    <main className="mx-auto max-w-sm px-6 py-16">
-      <h1 className="text-2xl font-bold tracking-tight">{t.title}</h1>
+    <main className="mx-auto max-w-sm px-5 py-14 sm:px-6">
+      <h1 className="font-display text-2xl font-bold">{t.title}</h1>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="displayName" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="displayName" className={labelClasses}>
             {t.displayName}
           </label>
           <input
@@ -52,11 +54,11 @@ export default function SignupForm({ locale }: { locale: Locale }) {
             required
             value={displayName}
             onChange={(e) => setDisplayName(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
         </div>
         <div>
-          <label htmlFor="username" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="username" className={labelClasses}>
             {t.username}
           </label>
           <input
@@ -68,12 +70,12 @@ export default function SignupForm({ locale }: { locale: Locale }) {
             title={t.usernameHint}
             value={username}
             onChange={(e) => setUsername(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
-          <p className="mt-1 text-xs text-neutral-500">{t.usernameHint}</p>
+          <p className="mt-1 text-xs text-muted">{t.usernameHint}</p>
         </div>
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="email" className={labelClasses}>
             {t.email}
           </label>
           <input
@@ -83,11 +85,11 @@ export default function SignupForm({ locale }: { locale: Locale }) {
             dir="ltr"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-neutral-700">
+          <label htmlFor="password" className={labelClasses}>
             {t.password}
           </label>
           <input
@@ -98,22 +100,22 @@ export default function SignupForm({ locale }: { locale: Locale }) {
             minLength={8}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            className="mt-1 w-full rounded-md border border-neutral-300 px-3 py-2 text-sm focus:border-neutral-500 focus:outline-none"
+            className={`mt-1 ${inputClasses}`}
           />
-          <p className="mt-1 text-xs text-neutral-500">{t.passwordHint}</p>
+          <p className="mt-1 text-xs text-muted">{t.passwordHint}</p>
         </div>
-        {error ? <p className="text-sm text-red-600">{error}</p> : null}
+        {error ? <p className={errorClasses}>{error}</p> : null}
         <button
           type="submit"
           disabled={loading}
-          className="w-full rounded-md bg-neutral-900 px-4 py-2 text-sm font-medium text-white hover:bg-neutral-700 disabled:opacity-50"
+          className={buttonClasses("primary", "md", "w-full")}
         >
           {loading ? t.submitting : t.submit}
         </button>
       </form>
-      <p className="mt-4 text-sm text-neutral-600">
+      <p className="mt-4 text-sm text-muted">
         {t.haveAccount}{" "}
-        <Link href="/login" className="font-medium text-neutral-900 underline">
+        <Link href="/login" className="font-medium text-brand underline underline-offset-2">
           {t.loginLink}
         </Link>
       </p>
