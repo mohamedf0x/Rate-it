@@ -4,13 +4,14 @@ import "leaflet/dist/leaflet.css";
 import L from "leaflet";
 import { useState } from "react";
 import { MapContainer, Marker, TileLayer, useMap, useMapEvents } from "react-leaflet";
-import { DEFAULT_CENTER, DEFAULT_ZOOM, TILE_ATTRIBUTION, TILE_URL } from "@/lib/map";
+import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/map";
+import { useTileset } from "@/components/map/useTileset";
 import { getDictionary } from "@/lib/i18n/dictionaries";
 import type { Locale } from "@/lib/i18n/config";
 
 const pinIcon = L.divIcon({
   className: "",
-  html: `<div style="background:#171717;width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 1px 4px rgba(0,0,0,.4);border:2px solid #fff"></div>`,
+  html: `<div style="background:rgb(var(--brand));width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);box-shadow:0 1px 4px rgba(0,0,0,.4);border:2px solid rgb(var(--surface))"></div>`,
   iconSize: [28, 28],
   iconAnchor: [14, 28],
 });
@@ -56,7 +57,7 @@ function LocateButton({
       type="button"
       onClick={locate}
       disabled={locating}
-      className="absolute right-3 top-3 z-[1000] rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-xs font-medium text-neutral-700 shadow-sm hover:border-neutral-400 disabled:opacity-50"
+      className="absolute right-3 top-3 z-[1000] rounded-lg border border-border bg-surface px-3 py-1.5 text-xs font-medium text-ink shadow-sm transition-colors hover:border-border-strong disabled:opacity-50"
     >
       {label}
     </button>
@@ -75,6 +76,7 @@ export default function LocationPickerView({
   onChange: (lat: number, lng: number) => void;
 }) {
   const t = getDictionary(locale).map;
+  const tiles = useTileset();
   const hasPin = lat !== null && lng !== null;
 
   return (
@@ -84,9 +86,9 @@ export default function LocationPickerView({
         zoom={hasPin ? 16 : DEFAULT_ZOOM}
         scrollWheelZoom
         style={{ height: "300px", width: "100%" }}
-        className="rounded-lg border border-neutral-200"
+        className="rounded-card border border-border"
       >
-        <TileLayer attribution={TILE_ATTRIBUTION} url={TILE_URL} />
+        <TileLayer key={tiles.url} attribution={tiles.attribution} url={tiles.url} />
         <ClickToPlace onPick={onChange} />
         <LocateButton label={t.useMyLocation} onPick={onChange} />
         {hasPin ? (

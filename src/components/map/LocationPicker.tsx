@@ -5,7 +5,7 @@ import type { Locale } from "@/lib/i18n/config";
 
 const LocationPickerView = dynamic(() => import("@/components/map/LocationPickerView"), {
   ssr: false,
-  loading: () => <div className="h-[300px] w-full animate-pulse rounded-lg bg-neutral-200" />,
+  loading: () => <div className="h-[300px] w-full animate-pulse rounded-card border border-border bg-surface-2" />,
 });
 
 export default function LocationPicker(props: {

@@ -7,7 +7,7 @@ import type { Locale } from "@/lib/i18n/config";
 // Leaflet touches `window` on import, so the map only ever loads in the browser.
 const PlacesMapView = dynamic(() => import("@/components/map/PlacesMapView"), {
   ssr: false,
-  loading: () => <div className="h-[420px] w-full animate-pulse rounded-lg bg-neutral-200" />,
+  loading: () => <div className="h-[420px] w-full animate-pulse rounded-card border border-border bg-surface-2" />,
 });
 
 export default function PlacesMap(props: { locale: Locale; places: MapPlace[]; height?: string }) {

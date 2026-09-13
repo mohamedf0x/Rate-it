@@ -100,6 +100,45 @@
   }
 }
 
+/*
+ * Leaflet ships its own white chrome, which stays white on a dark page no matter which
+ * tileset is loaded. These pull its popup, controls and attribution onto the tokens.
+ *
+ * Every selector is prefixed with .leaflet-container to outrank Leaflet's own rules: its
+ * stylesheet is imported from the map component and lands after this file, so matching its
+ * specificity would lose on source order.
+ */
+.leaflet-container .leaflet-popup-content-wrapper,
+.leaflet-container .leaflet-popup-tip {
+  background: rgb(var(--surface));
+  color: rgb(var(--ink));
+  box-shadow: 0 3px 14px rgb(0 0 0 / 0.3);
+}
+
+.leaflet-container a.leaflet-popup-close-button {
+  color: rgb(var(--muted));
+}
+
+.leaflet-container .leaflet-bar a,
+.leaflet-container .leaflet-bar a:hover {
+  background: rgb(var(--surface));
+  color: rgb(var(--ink));
+  border-bottom-color: rgb(var(--border));
+}
+
+.leaflet-container .leaflet-bar a:hover {
+  background: rgb(var(--surface-2));
+}
+
+.leaflet-container .leaflet-control-attribution {
+  background: rgb(var(--surface) / 0.8);
+  color: rgb(var(--muted));
+}
+
+.leaflet-container .leaflet-control-attribution a {
+  color: rgb(var(--brand));
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
