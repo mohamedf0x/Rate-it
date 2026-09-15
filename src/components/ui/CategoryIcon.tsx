@@ -19,7 +19,7 @@ import { cn } from "@/lib/cn";
  * Colour classes are written out rather than built from the category name, because Tailwind
  * scans source text for complete class names and would not emit `text-cat-${category}`.
  */
-const CATEGORY_ICON: Record<PlaceCategoryValue, { Icon: LucideIcon; text: string; bg: string }> = {
+export const CATEGORY_ICON: Record<PlaceCategoryValue, { Icon: LucideIcon; text: string; bg: string }> = {
   RESTAURANT: { Icon: UtensilsCrossed, text: "text-cat-restaurant", bg: "bg-cat-restaurant/10" },
   SHOP: { Icon: ShoppingBag, text: "text-cat-shop", bg: "bg-cat-shop/10" },
   PHARMACY: { Icon: Pill, text: "text-cat-pharmacy", bg: "bg-cat-pharmacy/10" },

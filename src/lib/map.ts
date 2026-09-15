@@ -31,14 +31,14 @@ export const TILE_DARK: Tileset = {
 // Pin colours mirror the --cat-* tokens in globals.css (light values), so a category is the
 // same colour on the map as it is on its icon. Leaflet needs a plain string, which is why
 // these are hex here rather than read from the stylesheet.
-export const CATEGORY_PIN: Record<PlaceCategoryValue, { emoji: string; color: string }> = {
-  RESTAURANT: { emoji: "🍽️", color: "#b4531b" },
-  SHOP: { emoji: "🛍️", color: "#6d3d9b" },
-  PHARMACY: { emoji: "💊", color: "#1f7a54" },
-  GAMING_ZONE: { emoji: "🎮", color: "#3a4fa8" },
-  PADEL_COURT: { emoji: "🎾", color: "#96701a" },
-  FOOTBALL_COURT: { emoji: "⚽", color: "#3f7a38" },
-  OTHER: { emoji: "📍", color: "#556662" },
+export const CATEGORY_PIN: Record<PlaceCategoryValue, { color: string }> = {
+  RESTAURANT: { color: "#b4531b" },
+  SHOP: { color: "#6d3d9b" },
+  PHARMACY: { color: "#1f7a54" },
+  GAMING_ZONE: { color: "#3a4fa8" },
+  PADEL_COURT: { color: "#96701a" },
+  FOOTBALL_COURT: { color: "#3f7a38" },
+  OTHER: { color: "#556662" },
 };
 
 export type MapPlace = {
